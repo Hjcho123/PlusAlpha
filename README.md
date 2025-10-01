@@ -9,6 +9,8 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+I'm designing it as an alternative to Yahoo Finance 
+
 ## Screenshots of Prototype Interface:
 
 <img width="1470" height="836" alt="image" src="https://github.com/user-attachments/assets/60d49f0c-9616-4993-a96c-e4327d683a68" />
