@@ -18,6 +18,9 @@ const Hero = () => {
             text="PlusAlpha" 
             onComplete={() => setAnimationComplete(true)}
             className="tracking-tight"
+            highlightStart={4}
+            highlightEnd={9}
+            highlightColor="hsl(220, 90%, 35%)"
           />
         </h1>
         
