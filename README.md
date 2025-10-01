@@ -1,4 +1,4 @@
-<img width="599" height="169" alt="Screenshot 2025-10-02 at 2 05 07 AM" src="https://github.com/user-attachments/assets/d8ea7bb6-13f3-4406-b4d0-3b7978d50154" />
+<img width="941" height="265" alt="Screenshot_2025-10-02_at_2 05 07_AM-removebg-preview" src="https://github.com/user-attachments/assets/3038a542-e57e-4d85-9f8f-875fddbef247" />
 
 
 # AI-Powered Trading Dashboard: PlusAlpha
