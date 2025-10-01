@@ -10,8 +10,7 @@ import PredictiveAnalytics from "./pages/predictive_analytics";
 import PortfolioOptimization from "./pages/portfolio_optimization";
 import RiskManagement from "./pages/risk_management";
 import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
+import DesktopOnly from "./components/DesktopOnly"; // Add this import
 
 // Initialize theme immediately to prevent flash
 const initializeTheme = () => {
@@ -28,6 +27,8 @@ const initializeTheme = () => {
 // Run immediately
 initializeTheme();
 
+const queryClient = new QueryClient();
+
 const App = () => {
   useEffect(() => {
     // Scroll to top on route change
@@ -39,6 +40,8 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        {/* Desktop-only message - will only show on small screens */}
+        <DesktopOnly />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

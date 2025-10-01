@@ -7,7 +7,15 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
-            <h3 className="text-2xl font-bold font-nanum mb-4">PlusAlpha</h3>
+            <div className="text-2xl font-bold font-nanum text-primary-foreground relative mb-4">
+              PlusAlpha
+              <span 
+                className="absolute -top-1 -right-100 text-lg font-bold"
+                style={{ color: 'white' }}
+              >
+                +
+              </span>
+            </div>
             <div className="flex items-start gap-2 mb-3">
               <GraduationCap className="w-5 h-5 text-primary-foreground/80 mt-1 flex-shrink-0" />
               <p className="text-primary-foreground/80">
@@ -16,7 +24,7 @@ const Footer = () => {
               </p>
             </div>
             <p className="text-primary-foreground/60 text-sm">
-             
+              Making AI-powered trading accessible to everyone
             </p>
           </div>
 
@@ -36,7 +44,12 @@ const Footer = () => {
                   Create Account
                 </a>
               </li>
-              
+              <li>
+                <a href="#" className="hover:text-primary-foreground transition-colors flex items-center gap-2">
+                  <span className="w-1 h-1 bg-primary-foreground/50 rounded-full"></span>
+                  Login
+                </a>
+              </li>
             </ul>
           </div>
 
