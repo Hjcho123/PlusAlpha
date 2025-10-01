@@ -13,7 +13,8 @@ I'm designing it as an alternative to Yahoo Finance
 
 ## Screenshots of Prototype Interface:
 
-<img width="1470" height="836" alt="image" src="https://github.com/user-attachments/assets/60d49f0c-9616-4993-a96c-e4327d683a68" />
+<img width="1470" height="836" alt="image" src="https://github.com/user-attachments/assets/325f90ab-02f0-45b6-96b4-087de1aa2009" />
+
 
 <img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/83dcaa58-1301-4dae-8b1f-21a29135b921" />
 
