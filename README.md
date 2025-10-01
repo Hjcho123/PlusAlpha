@@ -21,6 +21,10 @@ I'm designing it as an alternative to Yahoo Finance
 ### Landing Page
 <img width="1468" height="835" alt="image" src="https://github.com/user-attachments/assets/c3635bf5-35b2-45b9-9607-94eccdcc0034" />
 
+The web design of the project was partly inspired by vintage Apple ads like the one below:
+<img width="1600" height="1200" alt="image" src="https://github.com/user-attachments/assets/d6bd9d9c-270c-484d-9fc7-a1963937b82c" />
+
+
 ### Links to Demos
 <img width="1470" height="810" alt="image" src="https://github.com/user-attachments/assets/df795401-5c30-47e7-b828-58ef87a18955" />
 
