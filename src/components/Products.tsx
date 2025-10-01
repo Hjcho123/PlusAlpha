@@ -7,21 +7,25 @@ const Products = () => {
       icon: <Brain className="w-12 h-12 text-accent" />,
       title: "AI Trading Assistant",
       description: "Advanced machine learning algorithms analyze market patterns and provide real-time trading recommendations.",
+      link: "/ai_trading"
     },
     {
       icon: <TrendingUp className="w-12 h-12 text-accent" />,
-      title: "Predictive Analytics",
+      title: "Predictive Analytics", 
       description: "Leverage AI to forecast market trends with unprecedented accuracy and make data-driven decisions.",
+      link: "/predictive-analytics"
     },
     {
       icon: <BarChart3 className="w-12 h-12 text-accent" />,
       title: "Portfolio Optimization",
       description: "Automatically balance and optimize your portfolio based on your risk tolerance and investment goals.",
+      link: "/portfolio-optimization"
     },
     {
       icon: <Shield className="w-12 h-12 text-accent" />,
       title: "Risk Management",
       description: "Comprehensive risk assessment tools powered by AI to protect your investments.",
+      link: "/risk-management"
     },
   ];
 
@@ -39,21 +43,26 @@ const Products = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {products.map((product, index) => (
-            <Card 
-              key={index} 
-              className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-slide-up border-border/50"
-              style={{ animationDelay: `${index * 0.1}s` }}
+            <a 
+              href={product.link} 
+              key={index}
+              className="block no-underline"
             >
-              <CardHeader>
-                <div className="mb-4">{product.icon}</div>
-                <CardTitle className="text-2xl font-nanum">{product.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  {product.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
+              <Card 
+                className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-slide-up border-border/50 cursor-pointer"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <CardHeader>
+                  <div className="mb-4">{product.icon}</div>
+                  <CardTitle className="text-2xl font-nanum">{product.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    {product.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </a>
           ))}
         </div>
       </div>

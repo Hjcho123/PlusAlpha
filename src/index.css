@@ -5,105 +5,115 @@
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
+/* Prevent flash of unstyled content */
+html {
+  color-scheme: light;
+}
 
+html.dark {
+  color-scheme: dark;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
 @layer base {
   :root {
-    --background: 45 20% 97%;
-    --foreground: 220 40% 10%;
+    /* Light theme with royal blue accents */
+    --background: 35 20.5% 97.7%; /* Keep your warm light background */
+    --foreground: 220 40% 10%; /* Keep dark text */
 
-    --card: 45 20% 97%;
+    --card: 60 14.3% 93.1%; /* Keep light cards */
     --card-foreground: 220 40% 10%;
 
-    --popover: 45 20% 97%;
+    --popover: 35 20.5% 97.7%;
     --popover-foreground: 220 40% 10%;
 
-    --primary: 220 90% 15%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 225 70% 35%; /* Royal blue primary */
+    --primary-foreground: 0 0% 100%; /* White text on blue */
     
-    --primary-glow: 220 85% 35%;
+    --primary-glow: 225 70% 45%;
 
-    --secondary: 220 15% 95%;
-    --secondary-foreground: 220 90% 15%;
+    --secondary: 35 20.5% 97.7%; /* Keep light secondary */
+    --secondary-foreground: 225 70% 35%; /* Royal blue text */
 
     --muted: 220 15% 95%;
     --muted-foreground: 220 15% 45%;
 
-    --accent: 200 95% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 225 70% 40%; /* Royal blue accent */
+    --accent-foreground: 0 0% 100%; /* White text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 15% 88%;
     --input: 220 15% 88%;
-    --ring: 220 90% 15%;
+    --ring: 225 70% 35%; /* Royal blue ring */
 
     --radius: 0.75rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(220, 90%, 15%), hsl(220, 85%, 35%));
-    --gradient-accent: linear-gradient(135deg, hsl(200, 95%, 45%), hsl(220, 85%, 55%));
-    --shadow-glow: 0 0 40px hsl(220 85% 35% / 0.3);
+    --gradient-primary: linear-gradient(135deg, hsl(225, 70%, 35%), hsl(225, 70%, 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(225, 70%, 40%), hsl(225, 65%, 55%));
+    --shadow-glow: 0 0 40px hsl(225 70% 35% / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
+    --sidebar-primary: 225 70% 35%; /* Royal blue sidebar */
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 225 70% 35%; /* Royal blue sidebar ring */
   }
 
   .dark {
-    --background: 220 40% 5%;
-    --foreground: 0 0% 98%;
+    /* Enhanced Dark Mode - More Pleasing Colors */
+    --background: 220 35% 7%; /* Slightly warmer dark blue */
+    --foreground: 210 20% 98%; /* Softer white */
 
-    --card: 220 35% 8%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 32% 10%; /* More depth for cards */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 220 35% 8%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 32% 10%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 200 95% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 225 70% 45%; /* Royal blue in dark mode */
+    --primary-foreground: 210 20% 98%;
     
-    --primary-glow: 200 90% 55%;
+    --primary-glow: 225 70% 55%;
 
-    --secondary: 220 30% 15%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 25% 15%; /* Better contrast */
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 220 30% 15%;
-    --muted-foreground: 220 15% 60%;
+    --muted: 220 25% 18%; /* Softer muted background */
+    --muted-foreground: 220 15% 70%; /* Better readability */
 
-    --accent: 200 95% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 225 70% 50%; /* Royal blue accent */
+    --accent-foreground: 210 20% 98%;
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 70% 55%; /* Softer red */
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 220 30% 18%;
-    --input: 220 30% 18%;
-    --ring: 200 95% 45%;
+    --border: 220 25% 20%; /* Better border definition */
+    --input: 220 25% 20%;
+    --ring: 225 70% 45%; /* Royal blue ring */
     
-    --gradient-primary: linear-gradient(135deg, hsl(220, 40%, 5%), hsl(220, 35%, 15%));
-    --gradient-accent: linear-gradient(135deg, hsl(200, 95%, 45%), hsl(220, 85%, 55%));
-    --shadow-glow: 0 0 40px hsl(200 95% 45% / 0.4);
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Enhanced Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220, 35%, 7%), hsl(220, 30%, 12%));
+    --gradient-accent: linear-gradient(135deg, hsl(225, 70%, 45%), hsl(225, 65%, 55%));
+    --shadow-glow: 0 0 50px hsl(225 70% 45% / 0.25);
+    
+    /* Enhanced Sidebar */
+    --sidebar-background: 220 35% 9%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 225 70% 45%;
+    --sidebar-primary-foreground: 210 20% 98%;
+    --sidebar-accent: 220 25% 15%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 225 70% 45%;
   }
 }
 

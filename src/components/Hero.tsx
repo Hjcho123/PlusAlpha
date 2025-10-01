@@ -1,6 +1,7 @@
 import { useState } from "react";
 import GlitchText from "./GlitchText";
 import { ChevronDown } from "lucide-react";
+import { Blocks, BotMessageSquare, ChartCandlestick, Shield } from "lucide-react";
 
 const Hero = () => {
   const [animationComplete, setAnimationComplete] = useState(false);
@@ -20,7 +21,7 @@ const Hero = () => {
             className="tracking-tight"
             highlightStart={4}
             highlightEnd={9}
-            highlightColor="hsl(220, 90%, 35%)"
+            highlightColor="hsl(var(--accent))" // Use CSS variable
           />
         </h1>
         
@@ -30,8 +31,26 @@ const Hero = () => {
           }`}
         >
           <p className="text-xl md:text-2xl text-muted-foreground font-nanum mb-12">
-            Making trading easier with AI
-          </p>
+  Making trading accessible with AI<br />
+  <span className="text-sm md:text-base">a project by Heejae Cho</span>
+</p>
+
+<div className="grid grid-cols-3 gap-8 max-w-4xl mx-auto mt-16">
+  <div className="text-center">
+    <BotMessageSquare className="w-8 h-8 mx-auto mb-2 text-accent" />
+    <p className="text-sm">AI-Powered Insights</p>
+  </div>
+  <div className="text-center">
+    <Blocks className="w-8 h-8 mx-auto mb-2 text-accent" />
+    <p className="text-sm">Entry-Level</p>
+  </div>
+  <div className="text-center">
+    <ChartCandlestick className="w-8 h-8 mx-auto mb-2 text-accent" />
+    <p className="text-sm">Real-time Analytics</p>
+  </div>
+</div>
+          
+          
         </div>
       </div>
 

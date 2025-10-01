@@ -15,11 +15,12 @@ const GlitchText = ({
   className = "",
   highlightStart,
   highlightEnd,
-  highlightColor = "hsl(220, 90%, 35%)"
+  highlightColor = "hsl(136, 64.40%, 40.80%)"
 }: GlitchTextProps) => {
   const [displayText, setDisplayText] = useState<string[]>(Array(text.length).fill(""));
   const [settledIndices, setSettledIndices] = useState<Set<number>>(new Set());
   const [isComplete, setIsComplete] = useState(false);
+  const [glitchColors, setGlitchColors] = useState<string[]>(Array(text.length).fill(""));
   const intervalRefs = useRef<(NodeJS.Timeout | null)[]>([]);
   const hasRunRef = useRef(false);
 
@@ -32,15 +33,22 @@ const GlitchText = ({
     "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
     "あいうえおかきくけこさしすせそたちつてとなにぬねの",
     "가나다라마바사아자차카타파하",
+    "床前明月光疑是地上霜"
   ];
+
+  // Function to get random accent color appearance
+  const getRandomGlitchColor = () => {
+    const shouldUseAccent = Math.random() < 0.65; // 30% chance to use accent color
+    return shouldUseAccent ? "hsl(var(--accent))" : "";
+  };
 
   useEffect(() => {
     // Prevent double execution
     if (hasRunRef.current) return;
     hasRunRef.current = true;
 
-    const initialGlitchDuration = 1500; // All characters glitch together for 1.5 seconds
-    const settleAnimationDuration = 1500; // Then settle over 1.5 seconds
+    const initialGlitchDuration = 200; // All characters glitch together for 1.5 seconds
+    const settleAnimationDuration = 1800; // Then settle over 1.5 seconds
     const textLength = text.length;
     const settleInterval = settleAnimationDuration / textLength; // Time between each character settling
     const glitchInterval = 40; // How fast characters change while glitching
@@ -58,6 +66,13 @@ const GlitchText = ({
             newText[index] = randomChar;
             return newText;
           });
+
+          // Randomly update glitch colors
+          setGlitchColors(prev => {
+            const newColors = [...prev];
+            newColors[index] = getRandomGlitchColor();
+            return newColors;
+          });
         }
       }, glitchInterval);
     });
@@ -74,11 +89,17 @@ const GlitchText = ({
             intervalRefs.current[index] = null;
           }
 
-          // Set final character
+          // Set final character and clear glitch color
           setDisplayText(prev => {
             const newText = [...prev];
             newText[index] = char;
             return newText;
+          });
+
+          setGlitchColors(prev => {
+            const newColors = [...prev];
+            newColors[index] = ""; // Clear glitch color when settled
+            return newColors;
           });
 
           setSettledIndices(prev => new Set(prev).add(index));
@@ -116,7 +137,7 @@ const GlitchText = ({
             className={`inline-block font-nanum transition-all duration-200`}
             style={{
               opacity: displayText[index] || isSettled ? 1 : 0.3,
-              color: isSettled && isHighlighted ? highlightColor : undefined,
+              color: isSettled && isHighlighted ? highlightColor : glitchColors[index] || undefined,
             }}
           >
             {isSettled ? char : (displayText[index] || char)}
