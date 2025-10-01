@@ -35,7 +35,7 @@ const GlitchText = ({
     "가나다라마바사아자차카타파하",
     "床前明月光疑是地上霜"
   ];
-
+//bruh
   // Function to get random accent color appearance
   const getRandomGlitchColor = () => {
     const shouldUseAccent = Math.random() < 0.65; // 30% chance to use accent color
