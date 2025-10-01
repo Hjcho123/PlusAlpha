@@ -11,8 +11,8 @@ const Footer = () => {
             <div className="flex items-start gap-2 mb-3">
               <GraduationCap className="w-5 h-5 text-primary-foreground/80 mt-1 flex-shrink-0" />
               <p className="text-primary-foreground/80">
-                Founded in 2025 by Hee Jae Cho,<br />
-                Hong Kong University of Science and Technology
+                Founded in 2025 by Hee Jae Cho<br />
+                at the Hong Kong University of Science and Technology
               </p>
             </div>
             <p className="text-primary-foreground/60 text-sm">

@@ -21,10 +21,10 @@ html.dark {
 @layer base {
   :root {
     /* Light theme with royal blue accents */
-    --background: 35 20.5% 97.7%; /* Keep your warm light background */
+    --background: 54 100% 98.8%; /* Keep your warm light background */
     --foreground: 220 40% 10%; /* Keep dark text */
 
-    --card: 60 14.3% 93.1%; /* Keep light cards */
+    --card: 60 14.3% 96.9%; /* Keep light cards */
     --card-foreground: 220 40% 10%;
 
     --popover: 35 20.5% 97.7%;

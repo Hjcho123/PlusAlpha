@@ -3,6 +3,7 @@ import { LogIn, ArrowLeft } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useNavigate } from "react-router-dom";
+import Logo from "./logo";
 
 const Navigation = () => {
   const { isHomePage, isProductPage, currentPath } = useNavigation();
@@ -31,9 +32,9 @@ const Navigation = () => {
         {isHomePage ? (
           <a 
             href="/" 
-            className="text-2xl font-bold font-nanum text-foreground hover:text-primary transition-colors cursor-pointer"
+            className="hover:text-primary transition-colors cursor-pointer"
           >
-            PlusAlpha
+            <Logo className="text-2xl" />
           </a>
         ) : (
           <div className="flex items-center gap-4">
@@ -52,10 +53,9 @@ const Navigation = () => {
           </div>
         )}
        
-        
         <div className="flex gap-4 items-center">
-        <ThemeToggle />
-          {/* Show Solutions link only on home page */}
+          <ThemeToggle />
+          {/* Rest of your navigation code remains the same */}
           {isHomePage && (
             <>
               <a href="#products" className="text-foreground hover:text-primary transition-colors">
@@ -67,22 +67,17 @@ const Navigation = () => {
             </>
           )}
           
-          {/* Show different actions on product pages */}
           {isProductPage && (
             <Button variant="outline" className="gap-2">
               <LogIn size={16} />
               Get Started
             </Button>
           )}
-
           
-          
-          {/* Always show Login button */}
           <Button variant="default" className="gap-2">
             <LogIn size={18} />
             Login
           </Button>
-          
         </div>
       </div>
     </nav>

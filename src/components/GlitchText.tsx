@@ -7,6 +7,7 @@ interface GlitchTextProps {
   highlightStart?: number;
   highlightEnd?: number;
   highlightColor?: string;
+  showPlus?: boolean;
 }
 
 const GlitchText = ({ 
@@ -15,12 +16,14 @@ const GlitchText = ({
   className = "",
   highlightStart,
   highlightEnd,
-  highlightColor = "hsl(136, 64.40%, 40.80%)"
+  highlightColor = "hsl(136, 64.40%, 40.80%)",
+  showPlus = false
 }: GlitchTextProps) => {
   const [displayText, setDisplayText] = useState<string[]>(Array(text.length).fill(""));
   const [settledIndices, setSettledIndices] = useState<Set<number>>(new Set());
   const [isComplete, setIsComplete] = useState(false);
   const [glitchColors, setGlitchColors] = useState<string[]>(Array(text.length).fill(""));
+  const [glitchOpacities, setGlitchOpacities] = useState<number[]>(Array(text.length).fill(0.3)); // Start with low opacity
   const intervalRefs = useRef<(NodeJS.Timeout | null)[]>([]);
   const hasRunRef = useRef(false);
 
@@ -35,11 +38,16 @@ const GlitchText = ({
     "가나다라마바사아자차카타파하",
     "床前明月光疑是地上霜"
   ];
-//bruh
+
   // Function to get random accent color appearance
   const getRandomGlitchColor = () => {
-    const shouldUseAccent = Math.random() < 0.65; // 30% chance to use accent color
+    const shouldUseAccent = Math.random() < 0.65;
     return shouldUseAccent ? "hsl(var(--accent))" : "";
+  };
+
+  // Function to get random opacity for glitching characters (never fully opaque)
+  const getRandomGlitchOpacity = () => {
+    return 0.3 + Math.random() * 0.5; // Range: 0.3 to 0.8 (never 1.0)
   };
 
   useEffect(() => {
@@ -47,16 +55,15 @@ const GlitchText = ({
     if (hasRunRef.current) return;
     hasRunRef.current = true;
 
-    const initialGlitchDuration = 200; // All characters glitch together for 1.5 seconds
-    const settleAnimationDuration = 1800; // Then settle over 1.5 seconds
+    const initialGlitchDuration = 200;
+    const settleAnimationDuration = 1800;
     const textLength = text.length;
-    const settleInterval = settleAnimationDuration / textLength; // Time between each character settling
-    const glitchInterval = 40; // How fast characters change while glitching
+    const settleInterval = settleAnimationDuration / textLength;
+    const glitchInterval = 40;
 
     // Start all characters glitching immediately
     text.split("").forEach((_, index) => {
       intervalRefs.current[index] = setInterval(() => {
-        // Only glitch if not settled
         if (!settledIndices.has(index)) {
           const randomSet = characterSets[Math.floor(Math.random() * characterSets.length)];
           const randomChar = randomSet[Math.floor(Math.random() * randomSet.length)];
@@ -67,29 +74,33 @@ const GlitchText = ({
             return newText;
           });
 
-          // Randomly update glitch colors
           setGlitchColors(prev => {
             const newColors = [...prev];
             newColors[index] = getRandomGlitchColor();
             return newColors;
           });
+
+          // Update opacity randomly for glitching characters
+          setGlitchOpacities(prev => {
+            const newOpacities = [...prev];
+            newOpacities[index] = getRandomGlitchOpacity();
+            return newOpacities;
+          });
         }
       }, glitchInterval);
     });
 
-    // After initial glitch phase, start settling characters one by one from left to right
+    // After initial glitch phase, start settling characters one by one
     setTimeout(() => {
       text.split("").forEach((char, index) => {
         const settleTime = index * settleInterval;
 
         setTimeout(() => {
-          // Stop glitching this character
           if (intervalRefs.current[index]) {
             clearInterval(intervalRefs.current[index]!);
             intervalRefs.current[index] = null;
           }
 
-          // Set final character and clear glitch color
           setDisplayText(prev => {
             const newText = [...prev];
             newText[index] = char;
@@ -102,9 +113,14 @@ const GlitchText = ({
             return newColors;
           });
 
+          setGlitchOpacities(prev => {
+            const newOpacities = [...prev];
+            newOpacities[index] = 1; // Set to fully opaque when settled
+            return newOpacities;
+          });
+
           setSettledIndices(prev => new Set(prev).add(index));
 
-          // If this is the last character, mark as complete
           if (index === text.length - 1) {
             setTimeout(() => {
               setIsComplete(true);
@@ -123,7 +139,7 @@ const GlitchText = ({
   }, []);
 
   return (
-    <div className={className}>
+    <div className={`${className} relative`}>
       {text.split("").map((char, index) => {
         const isSettled = settledIndices.has(index);
         const isHighlighted = highlightStart !== undefined && 
@@ -136,7 +152,7 @@ const GlitchText = ({
             key={index}
             className={`inline-block font-nanum transition-all duration-200`}
             style={{
-              opacity: displayText[index] || isSettled ? 1 : 0.3,
+              opacity: isSettled ? 1 : glitchOpacities[index], // Use opacity array for glitching chars
               color: isSettled && isHighlighted ? highlightColor : glitchColors[index] || undefined,
             }}
           >
@@ -144,6 +160,13 @@ const GlitchText = ({
           </span>
         );
       })}
+      
+      {/* Plus symbol that appears when animation completes */}
+      {showPlus && isComplete && (
+        <span className="absolute -top-2 -right-14 text-accent text-4xl md:text-7xl font-light">
+          +
+        </span>
+      )}
     </div>
   );
 };

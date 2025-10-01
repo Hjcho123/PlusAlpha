@@ -34,7 +34,7 @@ const Products = () => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold font-nanum text-foreground mb-4">
-            Our Solutions
+            Our Product
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Cutting-edge AI technology designed to give you the edge in trading
