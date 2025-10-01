@@ -1,3 +1,5 @@
+<img width="604" height="177" alt="image" src="https://github.com/user-attachments/assets/f68bd714-f8ee-4d4b-a062-c0c70f2a8e6c" />
+
 # AI-Powered Trading Dashboard: PlusAlpha
 
 ## Project info
