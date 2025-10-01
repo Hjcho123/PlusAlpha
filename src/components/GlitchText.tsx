@@ -8,8 +8,10 @@ interface GlitchTextProps {
 
 const GlitchText = ({ text, onComplete, className = "" }: GlitchTextProps) => {
   const [displayText, setDisplayText] = useState<string[]>(Array(text.length).fill(""));
+  const [settledIndices, setSettledIndices] = useState<Set<number>>(new Set());
   const [isComplete, setIsComplete] = useState(false);
   const intervalRefs = useRef<(NodeJS.Timeout | null)[]>([]);
+  const hasRunRef = useRef(false);
 
   // Extended character sets for glitching effect
   const characterSets = [
@@ -22,25 +24,21 @@ const GlitchText = ({ text, onComplete, className = "" }: GlitchTextProps) => {
     "가나다라마바사아자차카타파하",
   ];
 
-  const fonts = [
-    "font-sans",
-    "font-serif",
-    "font-mono",
-    "font-nanum",
-  ];
-
   useEffect(() => {
-    const totalDuration = 2500; // Total glitch duration
-    const charDelayIncrement = 150; // Delay between each character starting
+    // Prevent double execution
+    if (hasRunRef.current) return;
+    hasRunRef.current = true;
 
-    text.split("").forEach((char, index) => {
-      const startDelay = index * charDelayIncrement;
-      const glitchDuration = totalDuration - startDelay;
-      const glitchInterval = 50;
+    const totalDuration = 3000; // Total animation duration
+    const textLength = text.length;
+    const settleInterval = totalDuration / textLength; // Time between each character settling
+    const glitchInterval = 40; // How fast characters change while glitching
 
-      // Start glitching after delay
-      const startTimeout = setTimeout(() => {
-        intervalRefs.current[index] = setInterval(() => {
+    // Start all characters glitching immediately
+    text.split("").forEach((_, index) => {
+      intervalRefs.current[index] = setInterval(() => {
+        // Only glitch if not settled
+        if (!settledIndices.has(index)) {
           const randomSet = characterSets[Math.floor(Math.random() * characterSets.length)];
           const randomChar = randomSet[Math.floor(Math.random() * randomSet.length)];
           
@@ -49,28 +47,38 @@ const GlitchText = ({ text, onComplete, className = "" }: GlitchTextProps) => {
             newText[index] = randomChar;
             return newText;
           });
-        }, glitchInterval);
+        }
+      }, glitchInterval);
+    });
 
-        // Stop glitching and show final character
-        setTimeout(() => {
-          if (intervalRefs.current[index]) {
-            clearInterval(intervalRefs.current[index]!);
-          }
-          setDisplayText(prev => {
-            const newText = [...prev];
-            newText[index] = char;
-            return newText;
-          });
+    // Settle characters one by one from left to right
+    text.split("").forEach((char, index) => {
+      const settleTime = index * settleInterval;
 
-          // Check if this is the last character
-          if (index === text.length - 1) {
-            setTimeout(() => {
-              setIsComplete(true);
-              onComplete?.();
-            }, 300);
-          }
-        }, glitchDuration);
-      }, startDelay);
+      setTimeout(() => {
+        // Stop glitching this character
+        if (intervalRefs.current[index]) {
+          clearInterval(intervalRefs.current[index]!);
+          intervalRefs.current[index] = null;
+        }
+
+        // Set final character
+        setDisplayText(prev => {
+          const newText = [...prev];
+          newText[index] = char;
+          return newText;
+        });
+
+        setSettledIndices(prev => new Set(prev).add(index));
+
+        // If this is the last character, mark as complete
+        if (index === text.length - 1) {
+          setTimeout(() => {
+            setIsComplete(true);
+            onComplete?.();
+          }, 200);
+        }
+      }, settleTime);
     });
 
     return () => {
@@ -78,25 +86,22 @@ const GlitchText = ({ text, onComplete, className = "" }: GlitchTextProps) => {
         if (interval) clearInterval(interval);
       });
     };
-  }, [text, onComplete]);
+  }, []);
 
   return (
-    <div className={`${className} ${isComplete ? 'font-nanum' : ''}`}>
-      {displayText.map((char, index) => {
-        const isSettled = char === text[index];
-        const randomFont = !isSettled ? fonts[Math.floor(Math.random() * fonts.length)] : 'font-nanum';
+    <div className={className}>
+      {text.split("").map((char, index) => {
+        const isSettled = settledIndices.has(index);
         
         return (
           <span
             key={index}
-            className={`inline-block transition-all duration-100 ${
-              isSettled ? 'font-nanum' : randomFont
-            }`}
+            className={`inline-block font-nanum transition-all duration-200`}
             style={{
-              opacity: char ? 1 : 0,
+              opacity: displayText[index] || isSettled ? 1 : 0.3,
             }}
           >
-            {char || text[index]}
+            {isSettled ? char : (displayText[index] || char)}
           </span>
         );
       })}
