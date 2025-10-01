@@ -27,8 +27,7 @@ I'm designing it as an alternative to Yahoo Finance
 ### Account Creation 
 <img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/7e11ac0e-3ce2-4d43-8af0-4b740a79ea8b" />
 
-### Footer
-<img width="1469" height="344" alt="image" src="https://github.com/user-attachments/assets/058299ef-fb19-44a9-a17d-d9fb23c49f09" />
+
 
 ### Demo Page Sample
 <img width="1467" height="835" alt="image" src="https://github.com/user-attachments/assets/ae899036-fc78-44db-a805-c6d1f0b7d360" />
