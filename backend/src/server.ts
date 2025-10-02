@@ -13,6 +13,7 @@ import authRoutes from './routes/auth';
 import stockRoutes from './routes/stocks';
 import aiRoutes from './routes/ai';
 import portfolioRoutes from './routes/portfolio';
+import newsRoutes from './routes/news';
 
 // Import services
 import { WebSocketService } from './services/WebSocketService';
@@ -85,6 +86,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stocks', stockRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/news', newsRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -99,6 +101,7 @@ app.get('/api', (req, res) => {
         stocks: '/api/stocks',
         ai: '/api/ai',
         portfolio: '/api/portfolio',
+        news: '/api/news',
         websocket: '/ws'
       },
       documentation: 'https://github.com/your-repo/plusalpha-backend'
