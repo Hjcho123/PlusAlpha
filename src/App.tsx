@@ -5,12 +5,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import Portfolio from "./pages/Portfolio";
 import AITrading from "./pages/ai_trading";
 import PredictiveAnalytics from "./pages/predictive_analytics";
 import PortfolioOptimization from "./pages/portfolio_optimization";
-import RiskManagement from "./pages/risk_management";
+import RiskManagement from "./pages/RiskManagement";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import DesktopOnly from "./components/DesktopOnly"; // Add this import
+import ApiExample from "./components/ApiExample"; // Add API example component
+import StockDetail from "./pages/StockDetail"; // Add stock detail page
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Initialize theme immediately to prevent flash
 const initializeTheme = () => {
@@ -37,22 +44,30 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        {/* Desktop-only message - will only show on small screens */}
-        <DesktopOnly />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/ai_trading" element={<AITrading />} />
-            <Route path="/predictive-analytics" element={<PredictiveAnalytics />} />
-            <Route path="/portfolio-optimization" element={<PortfolioOptimization />} />
-            <Route path="/risk-management" element={<RiskManagement />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {/* Desktop-only message - will only show on small screens */}
+          <DesktopOnly />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/ai_trading" element={<AITrading />} />
+              <Route path="/predictive-analytics" element={<PredictiveAnalytics />} />
+              <Route path="/portfolio-optimization" element={<PortfolioOptimization />} />
+              <Route path="/risk-management" element={<RiskManagement />} />
+              <Route path="/api-demo" element={<ApiExample />} />
+              <Route path="/stock/:symbol" element={<StockDetail />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
