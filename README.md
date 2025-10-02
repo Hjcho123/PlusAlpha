@@ -28,6 +28,7 @@ I'm designing it as an alternative to Yahoo Finance
 ### Account Creation 
 <img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/7e11ac0e-3ce2-4d43-8af0-4b740a79ea8b" />
 
+<img width="1469" height="833" alt="image" src="https://github.com/user-attachments/assets/ff143691-3b19-4885-b49a-0be7ab15fdc1" />
 
 
 ### Demo Page Sample
@@ -38,7 +39,7 @@ I'm designing it as an alternative to Yahoo Finance
 
 <img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/92a650f8-8ff1-4dcc-a21b-34f1d0926b18" />
 
-
+<img width="1342" height="760" alt="image" src="https://github.com/user-attachments/assets/87406870-b171-4a9f-9981-20a8b6eefa4d" />
 
 ### Demo of Landing Page Animation
 
