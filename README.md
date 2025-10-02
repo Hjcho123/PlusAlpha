@@ -16,30 +16,37 @@ I'm designing it as an alternative to Yahoo Finance
 ## Screenshots of Prototype Interface:
 
 ### Landing Page
-<img width="1468" height="835" alt="image" src="https://github.com/user-attachments/assets/c3635bf5-35b2-45b9-9607-94eccdcc0034" />
+<img width="1470" height="882" alt="image" src="https://github.com/user-attachments/assets/d5b6d1e3-9e18-4ea0-b297-9f61069ef610" />
+
 
 ### The web design of the project was partly inspired by vintage Apple ads like the one below:
 <img width="1600" height="1200" alt="image" src="https://github.com/user-attachments/assets/d6bd9d9c-270c-484d-9fc7-a1963937b82c" />
 
 
 ### Links to Demos
-<img width="1470" height="810" alt="image" src="https://github.com/user-attachments/assets/df795401-5c30-47e7-b828-58ef87a18955" />
+<img width="1470" height="882" alt="image" src="https://github.com/user-attachments/assets/eb69d8f1-40c7-4d64-9ccc-95c3f56670a3" />
+
 
 ### Account Creation 
-<img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/7e11ac0e-3ce2-4d43-8af0-4b740a79ea8b" />
-
-<img width="1469" height="833" alt="image" src="https://github.com/user-attachments/assets/ff143691-3b19-4885-b49a-0be7ab15fdc1" />
+<img width="1470" height="880" alt="image" src="https://github.com/user-attachments/assets/9e9edb5f-ac1e-4c73-9af3-f2ae56c20d6b" />
 
 
-### Demo Page Sample
-<img width="1467" height="835" alt="image" src="https://github.com/user-attachments/assets/ae899036-fc78-44db-a805-c6d1f0b7d360" />
+
 
 
 ### Dark Mode
 
-<img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/92a650f8-8ff1-4dcc-a21b-34f1d0926b18" />
+<img width="1470" height="883" alt="image" src="https://github.com/user-attachments/assets/f19ffb9f-21df-4c1c-91a2-42b5337f9023" />
 
+### Main Dashboard
+<img width="1469" height="833" alt="image" src="https://github.com/user-attachments/assets/ff143691-3b19-4885-b49a-0be7ab15fdc1" />
+
+### Monte Carlo Stock Prediction
 <img width="1342" height="760" alt="image" src="https://github.com/user-attachments/assets/87406870-b171-4a9f-9981-20a8b6eefa4d" />
+
+### AI Stock Insights
+<img width="1470" height="839" alt="image" src="https://github.com/user-attachments/assets/2977210c-8e28-43f6-b06e-57562526e2e3" />
+
 
 ### Demo of Landing Page Animation
 
