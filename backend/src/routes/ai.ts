@@ -4,17 +4,19 @@ import { authenticate, rateLimit } from '../middleware/auth';
 
 const router = Router();
 
-// Apply rate limiting to AI routes (more restrictive due to AI processing)
-router.use(rateLimit(20, 900000)); // 20 requests per 15 minutes
-
-// Public AI routes (general market analysis)
+// Public AI routes (no authentication required)
 router.post('/market-analysis', aiController.generateMarketAnalysis);
+router.post('/demo/trading-signal/:symbol', aiController.generateDemoTradingSignal);
+router.post('/analyze-with-data', aiController.analyzeStockWithData);
 
 // Protected AI routes (require authentication)
 router.use(authenticate);
 
 // Trading signals
 router.post('/trading-signal/:symbol', aiController.generateTradingSignal);
+
+// AI Chat for follow-up questions about stocks
+router.post('/chat/:symbol', aiController.chatWithAIAboutStock);
 
 // Portfolio analysis (requires user authentication)
 router.post('/risk-assessment', aiController.generateRiskAssessment);

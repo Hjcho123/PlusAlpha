@@ -2,7 +2,16 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { WSMessage, PriceUpdateMessage, InsightUpdateMessage } from '../types';
 import { stockDataService } from './StockDataService';
-import { aiService } from './AIService';
+
+// Lazy import AIService to avoid initialization issues
+let aiService: any = null;
+const getAIService = () => {
+  if (!aiService) {
+    const { aiService: aiServiceInstance } = require('./AIService');
+    aiService = aiServiceInstance;
+  }
+  return aiService;
+};
 
 export class WebSocketService {
   private wss: WebSocketServer;
@@ -248,10 +257,11 @@ export class WebSocketService {
     // Generate AI insights every 5 minutes for popular symbols
     setInterval(async () => {
       const popularSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN'];
-      
+
       try {
+        const aiServiceInstance = getAIService();
         for (const symbol of popularSymbols) {
-          const insight = await aiService.generateTradingSignal(symbol);
+          const insight = await aiServiceInstance.generateTradingSignal(symbol);
           if (insight) {
             this.broadcastInsightUpdate(insight);
           }

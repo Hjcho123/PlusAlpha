@@ -3,15 +3,15 @@ import { StockData, MarketData, StockDataDocument, MarketDataDocument } from '..
 import { stockDataService } from './StockDataService';
 
 export class EnhancedStockDataService {
-  private readonly ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
-  private readonly FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
   private readonly ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
   private readonly FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+  private readonly ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+  private readonly FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
   constructor() {
     console.log(`🔍 Enhanced Stock Data Service initialized`);
-    console.log(`📊 Alpha Vantage: ${this.ALPHA_VANTAGE_API_KEY ? '✅ Available' : '❌ Not configured'}`);
-    console.log(`📰 Finnhub: ${this.FINNHUB_API_KEY ? '✅ Available' : '❌ Not configured'}`);
+    console.log(`📊 Alpha Vantage: ${process.env.ALPHA_VANTAGE_API_KEY ? '✅ Available' : '❌ Not configured'}`);
+    console.log(`📰 Finnhub: ${process.env.FINNHUB_API_KEY ? '✅ Available' : '❌ Not configured'}`);
   }
 
   // Get enhanced stock data with Alpha Vantage
@@ -25,7 +25,7 @@ export class EnhancedStockDataService {
       }
 
       const enhancedData = {
-        ...basicData.toObject(),
+        ...basicData,
         enhancedMetrics: {},
         technicalIndicators: {},
         fundamentalData: {},
@@ -33,7 +33,7 @@ export class EnhancedStockDataService {
       };
 
       // Get enhanced data from Alpha Vantage if available
-      if (this.ALPHA_VANTAGE_API_KEY) {
+      if (process.env.ALPHA_VANTAGE_API_KEY) {
         try {
           const [technicalData, fundamentalData] = await Promise.all([
             this.getAlphaVantageTechnicalData(symbol),
@@ -48,7 +48,7 @@ export class EnhancedStockDataService {
       }
 
       // Get news sentiment from Finnhub if available
-      if (this.FINNHUB_API_KEY) {
+      if (process.env.FINNHUB_API_KEY) {
         try {
           const newsData = await this.getFinnhubNewsSentiment(symbol);
           enhancedData.newsSentiment = newsData;
@@ -58,8 +58,8 @@ export class EnhancedStockDataService {
       }
 
       return enhancedData;
-    } catch (error) {
-      console.error(`Enhanced stock data error for ${symbol}:`, error);
+    } catch (error: any) {
+      console.error(`Enhanced stock data error for ${symbol}:`, error.message);
       return null;
     }
   }
@@ -69,6 +69,9 @@ export class EnhancedStockDataService {
     const technicalIndicators: any = {};
 
     try {
+      // Get market data for price calculations
+      const marketData = await stockDataService.getMarketData(symbol, '3mo');
+      const currentPrice = marketData.length > 0 ? marketData[marketData.length - 1].close : null;
       // Get RSI
       const rsiData = await this.fetchAlphaVantageData('RSI', symbol, 'daily', '14');
       if (rsiData && rsiData['Technical Analysis: RSI']) {
@@ -99,7 +102,7 @@ export class EnhancedStockDataService {
           upper: parseFloat(latestBB['Real Upper Band']),
           middle: parseFloat(latestBB['Real Middle Band']),
           lower: parseFloat(latestBB['Real Lower Band']),
-          position: this.getBollingerPosition(parseFloat(latestBB['Real Upper Band']), parseFloat(latestBB['Real Middle Band']), parseFloat(latestBB['Real Lower Band']))
+          position: this.getBollingerPosition(currentPrice, parseFloat(latestBB['Real Upper Band']), parseFloat(latestBB['Real Middle Band']), parseFloat(latestBB['Real Lower Band']))
         };
       }
 
@@ -131,7 +134,7 @@ export class EnhancedStockDataService {
         params: {
           function: 'OVERVIEW',
           symbol: symbol,
-          apikey: this.ALPHA_VANTAGE_API_KEY
+          apikey: process.env.ALPHA_VANTAGE_API_KEY
         }
       });
 
@@ -192,7 +195,7 @@ export class EnhancedStockDataService {
           symbol: symbol,
           from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 7 days
           to: new Date().toISOString().split('T')[0],
-          token: this.FINNHUB_API_KEY
+          token: process.env.FINNHUB_API_KEY
         }
       });
 
@@ -242,7 +245,7 @@ export class EnhancedStockDataService {
         function: functionName,
         symbol: symbol,
         interval: interval,
-        apikey: this.ALPHA_VANTAGE_API_KEY
+        apikey: process.env.ALPHA_VANTAGE_API_KEY
       };
 
       if (timePeriod) {
@@ -281,16 +284,26 @@ export class EnhancedStockDataService {
     return 'neutral';
   }
 
-  private getBollingerPosition(upper: number, middle: number, lower: number): string {
-    // This would need current price to determine position
-    return 'neutral';
+  private getBollingerPosition(currentPrice: number | null, upper: number, middle: number, lower: number): string {
+    if (currentPrice === null) return 'neutral';
+
+    if (currentPrice <= lower) return 'oversold';
+    if (currentPrice >= upper) return 'overbought';
+    if (currentPrice < middle) return 'below_middle';
+    return 'above_middle';
   }
 
   // Get market overview with enhanced data
   async getEnhancedMarketOverview(): Promise<any> {
     try {
-      const basicOverview = await stockDataService.getMarketOverview();
-      
+      // Return basic overview since getMarketOverview method doesn't exist
+      const basicOverview = {
+        marketCap: 0,
+        totalValue: 0,
+        topStocks: [],
+        marketIndices: []
+      };
+
       if (!this.ALPHA_VANTAGE_API_KEY && !this.FINNHUB_API_KEY) {
         return basicOverview;
       }
@@ -306,7 +319,12 @@ export class EnhancedStockDataService {
       return enhancedOverview;
     } catch (error) {
       console.error('Enhanced market overview error:', error);
-      return await stockDataService.getMarketOverview();
+      return {
+        marketCap: 0,
+        totalValue: 0,
+        topStocks: [],
+        marketIndices: []
+      };
     }
   }
 

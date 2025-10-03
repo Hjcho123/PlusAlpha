@@ -5,12 +5,13 @@ import { UserPlus, LogIn, Shield, Zap } from "lucide-react";
 import AuthModal from "./AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import { User } from "../services/api";
 
 const Contact = () => {
   const { login, isAuthenticated, user } = useAuth();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  const handleAuthSuccess = (userData: any, token: string) => {
+  const handleAuthSuccess = (userData: User, token: string) => {
     login(userData, token);
     setShowSuccessMessage(true);
     setTimeout(() => setShowSuccessMessage(false), 5000);
@@ -18,7 +19,7 @@ const Contact = () => {
 
   if (isAuthenticated && showSuccessMessage) {
     return (
-      <section id="contact" className="py-24 bg-card">
+      <section id="contact" className="py-24 bg-card/95 backdrop-blur-sm">
         <div className="container mx-auto px-6">
           <div className="text-center">
             <div className="max-w-2xl mx-auto">
@@ -53,7 +54,7 @@ const Contact = () => {
   }
 
   return (
-    <section id="contact" className="py-24 bg-card">
+    <section id="contact" className="py-24 bg-card/95 backdrop-blur-sm">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold font-nanum text-foreground mb-4">
@@ -83,7 +84,7 @@ const Contact = () => {
                 </p>
                 
                 <AuthModal onAuthSuccess={handleAuthSuccess}>
-                  <Button className="w-full h-12 gap-2 text-lg">
+                  <Button className="w-full h-12 gap-2 text-lg bg-accent hover:bg-accent/90 text-accent-foreground">
                     <Zap className="w-5 h-5" />
                     Start Your Trading Journey
                   </Button>
@@ -93,7 +94,7 @@ const Contact = () => {
                   <p className="text-sm text-muted-foreground">
                     Already have an account?{" "}
                     <AuthModal onAuthSuccess={handleAuthSuccess}>
-                      <a href="#" className="text-accent hover:underline font-medium">
+                      <a href="#" className="text-accent hover:bg-accent/10 hover:underline font-medium px-2 py-1 rounded transition-colors">
                         Sign in
                       </a>
                     </AuthModal>

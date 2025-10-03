@@ -2,18 +2,14 @@ import { Linkedin, Github, Mail, GraduationCap } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted border-t border-border py-12">
+    <footer className="bg-card/95 backdrop-blur-sm border-t border-border py-12">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="text-2xl font-bold font-nanum text-foreground relative mb-4">
               PlusAlpha
-              <span 
-                className="absolute -top-1 -right-0.1 text-lg font-bold text-primary"
-              >
-                +
-              </span>
+              
             </div>
             <div className="flex items-start gap-2 mb-3">
               <GraduationCap className="w-5 h-5 text-muted-foreground mt-1 flex-shrink-0" />

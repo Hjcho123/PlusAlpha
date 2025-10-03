@@ -31,6 +31,7 @@ export interface StockData {
 
 export interface AIInsight {
   _id: string;
+  id?: string;
   symbol: string;
   type: 'trading_signal' | 'market_analysis' | 'risk_assessment' | 'portfolio_optimization';
   title: string;
@@ -40,6 +41,12 @@ export interface AIInsight {
   reasoning: string[];
   technicalIndicators: any[];
   createdAt: string;
+  updatedAt?: string;
+  userId?: string;
+  expiresAt?: string;
+  age?: number;
+  isValid?: boolean;
+  __v?: number;
 }
 
 export interface User {
@@ -56,6 +63,15 @@ export interface User {
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  source: 'gemini' | 'rule-based';
+  symbol: string;
+  confidence: number;
+  timestamp: Date;
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 // Helper function to get auth headers
@@ -147,11 +163,36 @@ export const stockAPI = {
 
 // AI API
 export const aiAPI = {
-  // Generate trading signal
+  // Generate trading signal (requires authentication)
   generateTradingSignal: async (symbol: string, token: string): Promise<AIInsight> => {
     const response = await fetch(`${API_BASE_URL}/ai/trading-signal/${symbol}`, {
       method: 'POST',
       headers: getAuthHeaders(token)
+    });
+    const result = await handleResponse<AIInsight>(response);
+    return result.data!;
+  },
+
+  // Generate demo trading signal (no authentication required)
+  generateDemoTradingSignal: async (symbol: string): Promise<AIInsight> => {
+    const response = await fetch(`${API_BASE_URL}/ai/demo/trading-signal/${symbol}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const result = await handleResponse<AIInsight>(response);
+    return result.data!;
+  },
+
+  // Analyze stock with provided data (sends real stock data to Gemini)
+  analyzeStockWithData: async (stockData: any): Promise<AIInsight> => {
+    const response = await fetch(`${API_BASE_URL}/ai/analyze-with-data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(stockData)
     });
     const result = await handleResponse<AIInsight>(response);
     return result.data!;
@@ -204,11 +245,22 @@ export const aiAPI = {
     const url = new URL(`${API_BASE_URL}/ai/insights/user`);
     if (type) url.searchParams.set('type', type);
     url.searchParams.set('limit', limit.toString());
-    
+
     const response = await fetch(url.toString(), {
       headers: getAuthHeaders(token)
     });
     const result = await handleResponse<AIInsight[]>(response);
+    return result.data!;
+  },
+
+  // Chat about a stock (follow-up questions)
+  chatAboutStock: async (token: string, symbol: string, message: string, context?: any): Promise<ChatResponse> => {
+    const response = await fetch(`${API_BASE_URL}/ai/chat/${symbol}`, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({ message, context })
+    });
+    const result = await handleResponse<ChatResponse>(response);
     return result.data!;
   }
 };
@@ -452,12 +504,67 @@ export const newsAPI = {
   }
 };
 
+// Watchlist API
+export const watchlistAPI = {
+  // Get user's watchlist
+  getWatchlist: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/watchlist`, {
+      headers: getAuthHeaders(token)
+    });
+    const result = await handleResponse(response);
+    return result;
+  },
+
+  // Add stock to watchlist
+  addToWatchlist: async (token: string, symbol: string, notes?: string) => {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${symbol}`, {
+      method: 'POST',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({ notes })
+    });
+    const result = await handleResponse(response);
+    return result;
+  },
+
+  // Remove stock from watchlist
+  removeFromWatchlist: async (token: string, symbol: string) => {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${symbol}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    });
+    const result = await handleResponse(response);
+    return result;
+  },
+
+  // Clear entire watchlist
+  clearWatchlist: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/watchlist`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token)
+    });
+    const result = await handleResponse(response);
+    return result;
+  },
+
+  // Remove multiple stocks from watchlist
+  removeMultipleFromWatchlist: async (token: string, symbols: string[]) => {
+    const response = await fetch(`${API_BASE_URL}/watchlist/multiple`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+      body: JSON.stringify({ symbols })
+    });
+    const result = await handleResponse(response);
+    return result;
+  }
+};
+
 // Export all APIs as a single object for convenience
 export const api = {
   stock: stockAPI,
   ai: aiAPI,
   auth: authAPI,
   portfolio: portfolioAPI,
+  watchlist: watchlistAPI,
   news: newsAPI,
   WebSocketService
 };

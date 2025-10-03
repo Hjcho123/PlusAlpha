@@ -1,4 +1,12 @@
+import { Types } from 'mongoose';
+
 // Core Types for PlusAlpha Backend
+
+export interface WatchlistItem {
+  symbol: string;
+  addedAt: Date;
+  notes?: string;
+}
 
 export interface User {
   _id: string;
@@ -8,15 +16,15 @@ export interface User {
   lastName: string;
   riskTolerance: 'conservative' | 'moderate' | 'aggressive';
   investmentGoals: string[];
-  portfolio: Portfolio;
+  portfolio?: Types.ObjectId;
+  watchlist: WatchlistItem[];
   preferences: UserPreferences;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface Portfolio {
-  _id: string;
-  userId: string;
+  userId: Types.ObjectId;
   holdings: Holding[];
   totalValue: number;
   totalGainLoss: number;
@@ -186,7 +194,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 
 // WebSocket Message Types
 export interface WSMessage {
-  type: 'price_update' | 'insight_update' | 'alert' | 'error';
+  type: 'price_update' | 'insight_update' | 'alert' | 'error' | 'connection' | 'pong' | 'subscription_confirmed' | 'unsubscription_confirmed';
   data: any;
   timestamp: Date;
 }

@@ -82,9 +82,9 @@ const StockChart: React.FC<StockChartProps> = ({
       const date = item.date ? new Date(item.date) : new Date();
       const close = item.close || item.price || currentPrice;
       const open = item.open || close;
-      const high = item.high || close * (1 + Math.random() * 0.02);
-      const low = item.low || close * (1 - Math.random() * 0.02);
-      const volume = item.volume || Math.floor(Math.random() * 10000000) + 1000000;
+      const high = item.high || close; // Use close if high unavailable
+      const low = item.low || close; // Use close if low unavailable
+      const volume = item.volume || 0; // Explicit 0 if no volume
 
       return {
         date: date.toISOString().split('T')[0],
@@ -183,20 +183,11 @@ const StockChart: React.FC<StockChartProps> = ({
       const volatility = 0.02;
       const trend = changePercent / 100;
 
-      // Generate deterministic but varied price movements
-      const randomChange = (
-        Math.sin(i * 12.9898 + seed) * 0.5 +
-        Math.cos(i * 78.233 + seed) * 0.3 +
-        Math.sin(i * 45.678 + seed) * 0.2
-      ) * volatility;
-      currentPricePoint *= (1 + randomChange + trend * progress * 0.001);
-
-      // Generate OHLC values
-      const dailyVolatility = currentPricePoint * volatility * 0.5;
-      const open = currentPricePoint * (1 + (Math.sin(i * 125.654 + seed) * 0.5) * 0.01);
-      const close = currentPricePoint * (1 + (Math.cos(i * 167.890 + seed) * 0.5) * 0.01);
-      const high = Math.max(open, close) * (1 + Math.abs(Math.sin(i * 234.567 + seed)) * 0.01);
-      const low = Math.min(open, close) * (1 - Math.abs(Math.cos(i * 345.678 + seed)) * 0.01);
+      // Price fluctuations removed - use only real data
+      const open = currentPricePoint;
+      const close = currentPricePoint;
+      const high = currentPricePoint;
+      const low = currentPricePoint;
 
       // Ensure valid high/low relationships
       const validHigh = Math.max(high, Math.max(open, close));
@@ -230,7 +221,7 @@ const StockChart: React.FC<StockChartProps> = ({
 
   useEffect(() => {
     fetchChartData();
-  }, [symbol, timeframe]);
+  }, [symbol, timeframe, fetchChartData]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -310,16 +301,7 @@ const StockChart: React.FC<StockChartProps> = ({
                 <span className="font-medium text-blue-500">{formatCurrency(data.ma20)}</span>
               </div>
             )}
-            {data.rsi && (
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">RSI:</span>
-                <span className={`font-medium ${
-                  data.rsi > 70 ? 'text-red-500' : data.rsi < 30 ? 'text-green-500' : 'text-foreground'
-                }`}>
-                  {data.rsi.toFixed(1)}
-                </span>
-              </div>
-            )}
+            {/* RSI removed - data unavailable */}
           </div>
         </div>
       );

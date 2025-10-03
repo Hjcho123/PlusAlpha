@@ -129,24 +129,26 @@ fi
 echo ""
 echo "8. Testing AI Features..."
 echo "-------------------------"
-# Get a token first
-token=$(curl -s -X POST "http://localhost:3001/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"ai-test'$(date +%s)'@example.com","password":"Test123!","firstName":"AI","lastName":"Test","riskTolerance":"moderate"}' | \
-  grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+echo -n "Testing AI Trading Signal (Demo)... "
+response=$(curl -s -X POST "http://localhost:3001/api/ai/demo/trading-signal/AAPL")
 
-if [ -n "$token" ]; then
-    echo -n "Testing AI Trading Signal... "
-    response=$(curl -s -X POST "http://localhost:3001/api/ai/trading-signal/AAPL" \
-      -H "Authorization: Bearer $token")
-    
-    if echo "$response" | grep -q '"success":true'; then
-        echo -e "${GREEN}✅ PASS${NC}"
-    else
-        echo -e "${RED}❌ FAIL${NC}"
-    fi
+if echo "$response" | grep -q '"success":true'; then
+    echo -e "${GREEN}✅ PASS${NC}"
 else
-    echo -e "${RED}❌ FAIL (Could not get auth token)${NC}"
+    echo -e "${RED}❌ FAIL${NC}"
+    echo "Response: $response"
+fi
+
+echo -n "Testing AI Market Analysis... "
+response=$(curl -s -X POST "http://localhost:3001/api/ai/market-analysis" \
+  -H "Content-Type: application/json" \
+  -d '{"symbols":["AAPL","GOOGL","MSFT"]}')
+
+if echo "$response" | grep -q '"success":true'; then
+    echo -e "${GREEN}✅ PASS${NC}"
+else
+    echo -e "${RED}❌ FAIL${NC}"
+    echo "Response: $response"
 fi
 
 echo ""

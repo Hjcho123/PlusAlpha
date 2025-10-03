@@ -16,7 +16,7 @@ const Navigation = () => {
   const getPageTitle = () => {
     switch(currentPath) {
       case '/dashboard':
-        return 'Dashboard';
+        return ''; // Don't show redundant "Dashboard" text on dashboard page
       case '/portfolio':
         return 'Portfolio';
       case '/ai_trading':
@@ -34,7 +34,7 @@ const Navigation = () => {
       case '/settings':
         return 'Settings';
       default:
-        return 'PlusAlpha';
+        return ''; // Don't show redundant "PlusAlpha" when logo is already present
     }
   };
 
@@ -102,7 +102,10 @@ const Navigation = () => {
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -168,15 +171,15 @@ const Navigation = () => {
               
               {isProductPage && (
                 <AuthModal onAuthSuccess={login}>
-                  <Button variant="outline" className="gap-2">
+                  <Button variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
                     <LogIn size={16} />
                     Get Started
                   </Button>
                 </AuthModal>
               )}
-              
+
               <AuthModal onAuthSuccess={login}>
-                <Button variant="default" className="gap-2">
+                <Button variant="default" className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground">
                   <LogIn size={18} />
                   Login
                 </Button>

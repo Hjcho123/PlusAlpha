@@ -30,7 +30,7 @@ const Products = () => {
   ];
 
   return (
-    <section id="products" className="py-24 bg-secondary/30">
+    <section id="products" className="py-24 bg-background/95 backdrop-blur-sm border-y border-border/20">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold font-nanum text-foreground mb-4">
@@ -43,13 +43,13 @@ const Products = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {products.map((product, index) => (
-            <a 
-              href={product.link} 
+            <a
+              href={product.link}
               key={index}
               className="block no-underline"
             >
-              <Card 
-                className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-slide-up border-border/50 cursor-pointer"
+              <Card
+                className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-slide-up bg-card/95 backdrop-blur-sm border-border cursor-pointer"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <CardHeader>

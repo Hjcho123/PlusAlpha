@@ -8,18 +8,22 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     // Redirect authenticated users to dashboard
-    if (isAuthenticated) {
-      navigate('/dashboard');
+    if (isAuthenticated && user) {
+      console.log('User authenticated, redirecting to dashboard:', user.firstName);
+      // Small delay to ensure authentication state has fully propagated
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   // Don't render landing page if user is authenticated
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
     return null;
   }
 

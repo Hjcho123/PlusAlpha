@@ -1,8 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { User as IUser, UserPreferences } from '../types';
+import { User as IUser, UserPreferences, WatchlistItem } from '../types';
 
-export interface UserDocument extends IUser, Document {
+export interface IUserDocument extends Document {
+  _id: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  riskTolerance: 'conservative' | 'moderate' | 'aggressive';
+  investmentGoals: string[];
+  portfolio?: mongoose.Types.ObjectId;
+  watchlist: WatchlistItem[];
+  preferences: UserPreferences;
+  createdAt: Date;
+  updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -21,7 +33,7 @@ const UserPreferencesSchema = new Schema<UserPreferences>({
   timezone: { type: String, default: 'UTC' }
 }, { _id: false });
 
-const UserSchema = new Schema<UserDocument>({
+const UserSchema = new Schema<IUserDocument>({
   email: {
     type: String,
     required: true,
@@ -61,6 +73,23 @@ const UserSchema = new Schema<UserDocument>({
     ref: 'Portfolio',
     default: null
   },
+  watchlist: [{
+    symbol: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 200
+    }
+  }],
   preferences: {
     type: UserPreferencesSchema,
     default: () => ({})
@@ -68,8 +97,10 @@ const UserSchema = new Schema<UserDocument>({
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc, ret) {
-      delete ret.password;
+    transform: function(doc, ret: any) {
+      if (ret.password) {
+        delete ret.password;
+      }
       return ret;
     }
   }
@@ -96,4 +127,4 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const User = mongoose.model<UserDocument>('User', UserSchema);
+export const User = mongoose.model<IUserDocument>('User', UserSchema);

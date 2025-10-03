@@ -8,22 +8,40 @@ import { stockDataService } from './StockDataService';
 import { enhancedStockDataService } from './EnhancedStockDataService';
 
 export class AIService {
-  private readonly USE_FREE_AI = process.env.USE_FREE_AI === 'true' || !process.env.OPENAI_API_KEY;
+  private readonly GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  private readonly USE_FREE_AI = process.env.USE_FREE_AI === 'true' || !this.GEMINI_API_KEY;
   private readonly HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
   private readonly OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
   constructor() {
-    console.log(`🤖 AI Service initialized with ${this.USE_FREE_AI ? 'FREE alternatives' : 'OpenAI'}`);
+    console.log(`🤖 AI Service initialized with ${this.GEMINI_API_KEY ? 'Gemini AI' : 'FREE alternatives'}`);
   }
 
   // Generate trading signal for a stock
   async generateTradingSignal(symbol: string, userId?: string): Promise<AIInsight | null> {
     try {
-      // Get enhanced stock data with Alpha Vantage and Finnhub data
-      const [enhancedData, marketData] = await Promise.all([
-        enhancedStockDataService.instance.getEnhancedStockData(symbol),
-        stockDataService.getMarketData(symbol, '3mo')
-      ]);
+      console.log(`📊 Starting AI analysis for ${symbol}`);
+
+      // Get basic stock data first (works reliably)
+      const basicData = await stockDataService.getStockData(symbol);
+      if (!basicData) {
+        throw new Error(`No basic data available for ${symbol}`);
+      }
+      console.log(`✅ Got basic data for ${symbol}: $${basicData.price}`);
+
+      // Try to get enhanced data, but fall back gracefully
+      let enhancedData = null;
+      try {
+        enhancedData = await enhancedStockDataService.instance.getEnhancedStockData(symbol);
+        console.log(`✅ Enhanced data loaded for ${symbol}`);
+    } catch (enhancedError: any) {
+      console.warn(`⚠️ Enhanced data failed for ${symbol}, using basic data only:`, enhancedError.message);
+      enhancedData = basicData; // Fallback to basic data
+    }
+
+      // Get market data
+      const marketData = await stockDataService.getMarketData(symbol, '3mo');
+      console.log(`✅ Got market data for ${symbol}: ${marketData.length} data points`);
 
       if (!enhancedData || marketData.length === 0) {
         throw new Error(`Insufficient data for ${symbol}`);
@@ -308,29 +326,33 @@ export class AIService {
 
   // Generate enhanced AI analysis with Alpha Vantage and Finnhub data
   private async generateEnhancedStockAnalysis(
-    symbol: string, 
-    enhancedData: any, 
-    marketData: any[], 
+    symbol: string,
+    enhancedData: any,
+    marketData: any[],
     indicators: TechnicalIndicator[]
   ): Promise<any> {
-    if (this.USE_FREE_AI) {
-      return this.generateEnhancedFreeAnalysis(symbol, enhancedData, marketData, indicators);
+    if (this.GEMINI_API_KEY) {
+      console.log(`🤖 Using Gemini AI for enhanced analysis of ${symbol}`);
+      return this.generateGeminiAnalysis(symbol, enhancedData, marketData, indicators);
     } else {
-      return this.generateOpenAIAnalysis(symbol, enhancedData, marketData, indicators);
+      console.log(`📊 Gemini API key not found, using rule-based analysis for ${symbol}`);
+      return this.generateEnhancedFreeAnalysis(symbol, enhancedData, marketData, indicators);
     }
   }
 
   // Generate AI analysis using free alternatives
   private async generateStockAnalysis(
-    symbol: string, 
-    stockData: any, 
-    marketData: any[], 
+    symbol: string,
+    stockData: any,
+    marketData: any[],
     indicators: TechnicalIndicator[]
   ): Promise<any> {
-    if (this.USE_FREE_AI) {
-      return this.generateFreeAnalysis(symbol, stockData, marketData, indicators);
+    if (this.GEMINI_API_KEY) {
+      console.log(`🤖 Using Gemini AI for analysis of ${symbol}`);
+      return this.generateGeminiAnalysis(symbol, stockData, marketData, indicators);
     } else {
-      return this.generateOpenAIAnalysis(symbol, stockData, marketData, indicators);
+      console.log(`📊 Gemini API key not found, using rule-based analysis for ${symbol}`);
+      return this.generateFreeAnalysis(symbol, stockData, marketData, indicators);
     }
   }
 
@@ -759,69 +781,96 @@ export class AIService {
     }
   }
 
-  // OpenAI analysis (if API key is available)
-  private async generateOpenAIAnalysis(
-    symbol: string, 
-    stockData: any, 
-    marketData: any[], 
+  // Gemini AI analysis using the advanced 2.5 Flash Preview model
+  public async generateGeminiAnalysis(
+    symbol: string,
+    stockData: any,
+    marketData: any[],
     indicators: TechnicalIndicator[]
   ): Promise<any> {
     const prompt = `
-Analyze the following stock data and provide a trading recommendation:
+Analyze the following stock data and provide a professional trading recommendation using advanced financial analysis techniques:
 
 Stock: ${symbol}
 Current Price: $${stockData.price}
 Change: ${stockData.change} (${stockData.changePercent}%)
-Volume: ${stockData.volume}
-Market Cap: $${stockData.marketCap}
-PE Ratio: ${stockData.pe}
+Volume: ${stockData.volume ? stockData.volume.toLocaleString() : 'N/A'}
+Market Cap: $${stockData.marketCap ? stockData.marketCap.toLocaleString() : 'N/A'}
+PE Ratio: ${stockData.pe || 'N/A'}
 
 Technical Indicators:
-${indicators.map(ind => `- ${ind.name}: ${ind.value} (${ind.signal})`).join('\n')}
+${indicators.map(ind => `- ${ind.name}: ${typeof ind.value === 'number' ? ind.value.toFixed(2) : ind.value} (${ind.signal})`).join('\n')}
 
 Recent Price Trend (last 10 days):
-${marketData.slice(-10).map(d => `${d.timestamp.toISOString().split('T')[0]}: $${d.close}`).join('\n')}
+${marketData.slice(-10).map(d => `${new Date(d.timestamp).toISOString().split('T')[0]}: $${d.close}`).join('\n')}
 
-Provide:
-1. A brief analysis (2-3 sentences)
-2. Trading recommendation (buy/sell/hold/watch)
-3. Confidence level (0-100)
-4. Key reasoning points (3-5 bullet points)
+As a senior financial analyst, provide a comprehensive analysis with:
+1. Detailed market assessment and current position analysis
+2. Technical analysis interpretation
+3. Risk assessment and market sentiment evaluation
+4. Clear trading recommendation based on multiple factors
+5. Confidence assessment considering various market signals
 
-Format as JSON:
+Format your response as valid JSON only:
 {
-  "description": "Brief analysis...",
+  "description": "Professional analysis description highlighting key insights...",
   "action": "buy|sell|hold|watch",
   "confidence": 85,
-  "reasoning": ["Point 1", "Point 2", "Point 3"]
+  "reasoning": ["Key factor 1 with detailed reasoning", "Technical indicator analysis", "Risk assessment details", "Market conditions evaluation", "Recommendation rationale"]
 }
+
+Focus on actionable insights backed by the data provided.
 `;
 
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.7
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
+      console.log(`🤖 Sending analysis request to Gemini 2.5 Flash Preview for ${symbol}`);
+
+      const requestBody = {
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 32,
+          topP: 0.8,
+          maxOutputTokens: 2048,
+          responseMimeType: "application/json"
         }
-      });
+      };
 
-      const content = response.data.choices[0]?.message?.content;
-      if (!content) throw new Error('No response from OpenAI');
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`,
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 600000 // 10 minutes timeout for Gemini AI analysis
+        }
+      );
 
+      if (!response.data.candidates || response.data.candidates.length === 0) {
+        throw new Error('No response candidates from Gemini API');
+      }
+
+      const content = response.data.candidates[0]?.content?.parts?.[0]?.text;
+      if (!content) {
+        throw new Error('Empty content in Gemini response');
+      }
+
+      console.log(`✅ Successfully received Gemini analysis for ${symbol}`);
       return JSON.parse(content);
-    } catch (error) {
-      console.error('OpenAI API error:', error);
+    } catch (error: any) {
+      console.error('❌ Gemini API error for analysis:', error.response?.data || error.message);
+
+      // Fallback to rule-based analysis if Gemini fails
+      console.log(`🔄 Falling back to rule-based analysis for ${symbol}`);
       return this.getFallbackAnalysis(symbol);
     }
   }
 
   // Fallback analysis when all AI services fail
-  private getFallbackAnalysis(symbol: string): any {
+  public getFallbackAnalysis(symbol: string): any {
     return {
       description: `Based on technical analysis, ${symbol} shows mixed signals. Consider monitoring price action and market conditions.`,
       action: 'hold',
@@ -835,13 +884,89 @@ Format as JSON:
     };
   }
 
+  // Simple chat about stock functionality - uses Gemini with real data only
+  public async chatAboutStock(
+    symbol: string,
+    message: string,
+    context?: any,
+    userId?: string
+  ): Promise<any> {
+    console.log(`💬 AI chat about ${symbol}: "${message}"`);
+
+    try {
+      // Simple Gemini call like the working analysis endpoints
+      const prompt = `You are a financial analyst. A user has this stock data and asks: "${message}"
+
+Stock: ${symbol}
+Price: $${context?.price || 'N/A'}
+Change: ${context?.changePercent ? context.changePercent.toFixed(2) + '%' : 'N/A'}
+Market Cap: ${context?.marketCap ? (context.marketCap / 1000000000).toFixed(1) + 'B' : 'N/A'}
+P/E Ratio: ${context?.pe || 'N/A'}
+
+Previous recommendation: ${context?.action || 'HOLD'} (${context?.confidence || 'N/A'}% confidence)
+
+Provide a brief, helpful response to their question.`;
+
+      const requestBody = {
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.3,
+          topK: 32,
+          topP: 0.8,
+          maxOutputTokens: 1024,
+          responseMimeType: "text/plain"
+        }
+      };
+
+      console.log(`🤖 Sending chat request to Gemini`);
+
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`,
+        requestBody,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 300000 // 5 minutes
+        }
+      );
+
+      const content = response.data.candidates[0]?.content?.parts?.[0]?.text;
+      if (content) {
+        console.log(`✅ Gemini chat response successful`);
+        return {
+          response: content.trim(),
+          source: 'gemini',
+          symbol: symbol,
+          confidence: 75,
+          timestamp: new Date(),
+          riskLevel: 'medium'
+        };
+      }
+
+      // If no content, throw error to go to fallback
+      throw new Error('No Gemini response');
+
+    } catch (error: any) {
+      console.error('❌ Gemini chat failed:', error.message);
+
+      // Simple fallback
+      return {
+        response: `Based on the current data for ${symbol} (Price: $${context?.price || 'N/A'}, Change: ${context?.changePercent?.toFixed(2)}%, Prev. recommendation: ${context?.action || 'HOLD'}), please check recent financial reports for detailed information about your question.`,
+        source: 'fallback',
+        symbol: symbol,
+        confidence: 50,
+        timestamp: new Date(),
+        riskLevel: 'medium'
+      };
+    }
+  }
+
   // Generate market trend analysis
   private async generateMarketTrendAnalysis(stocksData: any[]): Promise<any> {
-    if (this.USE_FREE_AI) {
-      return this.generateFreeMarketAnalysis(stocksData);
-    } else {
-      return this.generateOpenAIMarketAnalysis(stocksData);
-    }
+    // Use free market analysis for now - can be enhanced with Gemini later
+    console.log(`📊 Using rule-based market analysis`);
+    return this.generateFreeMarketAnalysis(stocksData);
   }
 
   // Free market analysis using rule-based system

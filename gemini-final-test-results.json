@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-10-03T13:36:12.013Z",
+  "apiKey": "AIzaSyBTb24IHytKBlS3...",
+  "results": [
+    {
+      "test": "Simple Hello World",
+      "success": true,
+      "response": "```json\n{\"message\": \"Hello World\"}\n```",
+      "status": 200
+    },
+    {
+      "test": "Stock Analysis Test",
+      "success": true,
+      "response": "```json\n{\n  \"action\": \"Monitor\",\n  \"confidence\": 0.5\n}\n```\n\n**Analysis and Rationale:**\n\n1.  **Positive Short-Term Momentum:** A +2.5% change for a mega-cap stock like AAPL is a significant positive move, indicating bullish sentiment and buying pressure on the day.\n2.  **Lack of Context:** The provided data ($150 price, +2.5% change) is very limited. A comprehensive analysis would require:\n    *   **Technical Indicators:** Support/resistance levels, moving averages (e.g., 50-day, 200-day), RSI, MACD, trading volume.\n    *   **Fundamental Data:** P/E ratio, earnings growth, revenue trends, analyst ratings, valuation relative to peers.\n    *   **Catalysts:** Recent news (earnings, product launches, analyst upgrades/downgrades, economic data).\n    *   **Broader Market Context:** How is the S&P 500 or NASDAQ performing?\n    *   **Time Horizon:** Is this for short-term trading or long-term investment?\n3.  **AAPL's Core Strength:** Apple is a fundamentally strong company with a robust ecosystem, strong brand loyalty, and significant cash flow. A positive day adds to its general appeal.\n\n**Why \"Monitor\" with 0.5 Confidence:**\n\n*   **Action: \"Monitor\"**\n    *   The positive daily move is encouraging, but without further context (like where $150 sits relative to key technical levels, its current valuation, or any specific news driving the move), a definitive \"Buy\" or \"Sell\" would be irresponsible.\n    *   \"Monitor\" suggests keeping an eye on it to see if the positive momentum continues, if it finds resistance, or if any news emerges to justify further action. For long-term investors, it could signal a potential accumulation point if the valuation aligns with their strategy.\n\n*   **Confidence: 0.5 (Moderate)**\n    *   The confidence isn't low (e.g., 0.2) because AAPL is a well-understood company, and a +2.5% move *is* a clear positive signal for the day. We're not completely in the dark.\n    *   However, it's not high (e.g., 0.8-0.9) because of the severe lack of broader market data, technical analysis, fundamental valuation metrics, and news catalysts needed for a truly informed decision. The confidence reflects that we have *some* positive information but insufficient data for a strong conviction.",
+      "status": 200
+    },
+    {
+      "test": "Market Analysis Test",
+      "success": true,
+      "response": "```json\n{\n  \"market_data_sentiment\": [\n    {\n      \"symbol\": \"AAPL\",\n      \"change_percent\": 2.5,\n      \"sentiment\": \"Positive\",\n      \"strength\": \"Strong\",\n      \"analysis\": \"Apple experienced a significant daily gain, indicating robust positive investor sentiment, likely driven by strong performance expectations, positive news, or overall market optimism.\"\n    },\n    {\n      \"symbol\": \"GOOGL\",\n      \"change_percent\": -1.2,\n      \"sentiment\": \"Negative\",\n      \"strength\": \"Moderate\",\n      \"analysis\": \"Google (Alphabet) saw a moderate decline, suggesting some negative pressure, profit-taking, or specific concerns that led to a downturn, though not a severe sell-off.\"\n    },\n    {\n      \"symbol\": \"MSFT\",\n      \"change_percent\": 0.8,\n      \"sentiment\": \"Positive\",\n      \"strength\": \"Moderate\",\n      \"analysis\": \"Microsoft posted a modest gain, reflecting generally positive but not exceptionally strong investor confidence. It suggests continued, steady interest.\"\n    }\n  ],\n  \"overall_market_sentiment\": {\n    \"sentiment\": \"Generally Positive\",\n    \"rationale\": \"Across these three major tech stocks, the sentiment leans positive. Two out of three stocks saw gains, with Apple's strong increase outweighing Google's moderate decline. This suggests a net positive sentiment for this segment of the tech market, with strong upward momentum from a key player.\"\n  }\n}\n```",
+      "status": 200
+    },
+    {
+      "test": "Complex Financial Analysis",
+      "success": false,
+      "error": "timeout of 30000ms exceeded"
+    }
+  ]
+}

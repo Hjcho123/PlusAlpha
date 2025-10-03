@@ -1,13 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/AuthService';
-import { UserDocument } from '../models/User';
+import { IUserDocument } from '../models/User';
 
 // Extend Express Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: UserDocument;
-    }
+declare module 'express' {
+  interface Request {
+    user?: IUserDocument;
   }
 }
 
@@ -168,24 +166,35 @@ export const validateRequest = (schema: any) => {
 // CORS middleware
 export const corsOptions = {
   origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:5173'
-    ];
-    
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    try {
+      const allowedOrigins = [
+        process.env.FRONTEND_URL || 'http://localhost:5173',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:3000'
+      ];
+
+      // Allow requests with no origin (mobile apps, Postman, curl, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 CORS blocked: Origin "${origin}" not allowed`);
+        callback(null, false); // Just deny instead of throwing error
+      }
+    } catch (err) {
+      console.error('CORS middleware error:', err);
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
 // Error handling middleware

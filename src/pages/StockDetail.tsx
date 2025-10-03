@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import StockChart from '@/components/StockChart';
+import EnhancedStockChart from '@/components/EnhancedStockChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,7 @@ import {
   BarChart3,
   Activity,
   DollarSign,
-  TrendingDownIcon
+  AlertCircle
 } from 'lucide-react';
 
 interface StockData {
@@ -26,14 +26,14 @@ interface StockData {
   changePercent: number;
   volume: number;
   marketCap: number;
-  pe: number;
-  eps: number;
-  high: number;
-  low: number;
-  open: number;
-  close: number;
+  pe?: number;
+  eps?: number;
+  high?: number;
+  low?: number;
+  open?: number;
+  close?: number;
   dividendYield?: number;
-  rsi?: number;
+  // Remove RSI as it's not reliably available from yfinance
 }
 
 const StockDetail: React.FC = () => {
@@ -54,48 +54,30 @@ const StockDetail: React.FC = () => {
     setError(null);
     try {
       const data = await api.stock.getStockData(sym);
-      const basePrice = data.price;
       
+      if (!data || !data.price || data.price <= 0) {
+        throw new Error('Invalid or no data received from API');
+      }
+
       setStockData({
-        symbol: data.symbol,
-        name: data.name || `${sym} Inc.`,
-        price: basePrice,
-        change: basePrice * (data.changePercent / 100),
+        symbol: data.symbol || sym,
+        name: data.name || `${sym} Company`,
+        price: data.price,
+        change: data.change !== undefined ? data.change : data.price * (data.changePercent / 100),
         changePercent: data.changePercent,
-        volume: data.volume,
-        marketCap: data.marketCap,
+        volume: data.volume || 0,
+        marketCap: data.marketCap || 0,
         pe: data.pe,
-        eps: data.eps || 0,
-        high: basePrice * 1.02,
-        low: basePrice * 0.98,
-        open: basePrice * 0.99,
-        close: basePrice,
-        dividendYield: Math.random() * 3,
-        rsi: 30 + Math.random() * 40,
+        eps: data.eps,
+        high: data.high,
+        low: data.low,
+        open: data.open,
+        close: data.close,
+        dividendYield: data.dividendYield,
       });
     } catch (err) {
       console.error('Error loading stock data:', err);
-      // Generate mock data as fallback
-      const basePrice = 100 + Math.random() * 200;
-      const changePercent = (Math.random() - 0.5) * 10;
-      
-      setStockData({
-        symbol: sym,
-        name: `${sym} Inc.`,
-        price: basePrice,
-        change: basePrice * (changePercent / 100),
-        changePercent: changePercent,
-        volume: Math.floor(Math.random() * 10000000) + 1000000,
-        marketCap: Math.floor(Math.random() * 500000000000) + 50000000000,
-        pe: Math.random() * 30 + 10,
-        eps: Math.random() * 10,
-        high: basePrice * 1.02,
-        low: basePrice * 0.98,
-        open: basePrice * 0.99,
-        close: basePrice,
-        dividendYield: Math.random() * 3,
-        rsi: 30 + Math.random() * 40,
-      });
+      setError('Could not load stock data. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -137,7 +119,8 @@ const StockDetail: React.FC = () => {
         <div className="container mx-auto py-24 px-6">
           <Card className="bg-card border-border">
             <CardContent className="text-center py-12">
-              <p className="text-destructive mb-4">{error || 'Stock not found'}</p>
+              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
+              <p className="text-destructive mb-4">{error || 'Stock data unavailable'}</p>
               <Button onClick={() => navigate('/dashboard')} variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
@@ -188,54 +171,66 @@ const StockDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Key Metrics */}
+        {/* Key Metrics - Only show available data */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground mb-1">Open</div>
-              <div className="text-lg font-bold text-foreground">{formatCurrency(stockData.open)}</div>
-            </CardContent>
-          </Card>
+          {stockData.open && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground mb-1">Open</div>
+                <div className="text-lg font-bold text-foreground">{formatCurrency(stockData.open)}</div>
+              </CardContent>
+            </Card>
+          )}
           
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground mb-1">High</div>
-              <div className="text-lg font-bold text-green-500">{formatCurrency(stockData.high)}</div>
-            </CardContent>
-          </Card>
+          {stockData.high && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground mb-1">High</div>
+                <div className="text-lg font-bold text-green-500">{formatCurrency(stockData.high)}</div>
+              </CardContent>
+            </Card>
+          )}
           
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground mb-1">Low</div>
-              <div className="text-lg font-bold text-red-500">{formatCurrency(stockData.low)}</div>
-            </CardContent>
-          </Card>
+          {stockData.low && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground mb-1">Low</div>
+                <div className="text-lg font-bold text-red-500">{formatCurrency(stockData.low)}</div>
+              </CardContent>
+            </Card>
+          )}
           
           <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="text-sm text-muted-foreground mb-1">Volume</div>
-              <div className="text-lg font-bold text-foreground">{(stockData.volume / 1000000).toFixed(2)}M</div>
+              <div className="text-lg font-bold text-foreground">
+                {stockData.volume ? `${(stockData.volume / 1000000).toFixed(2)}M` : 'N/A'}
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground mb-1">Market Cap</div>
-              <div className="text-lg font-bold text-foreground">{formatLargeNumber(stockData.marketCap)}</div>
-            </CardContent>
-          </Card>
+          {stockData.marketCap > 0 && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground mb-1">Market Cap</div>
+                <div className="text-lg font-bold text-foreground">{formatLargeNumber(stockData.marketCap)}</div>
+              </CardContent>
+            </Card>
+          )}
           
-          <Card className="bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="text-sm text-muted-foreground mb-1">P/E Ratio</div>
-              <div className="text-lg font-bold text-foreground">{stockData.pe.toFixed(2)}</div>
-            </CardContent>
-          </Card>
+          {stockData.pe && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground mb-1">P/E Ratio</div>
+                <div className="text-lg font-bold text-foreground">{stockData.pe.toFixed(2)}</div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="chart" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-2 bg-card border border-border">
             <TabsTrigger value="chart">
               <Activity className="w-4 h-4 mr-2" />
               Chart
@@ -244,15 +239,11 @@ const StockDetail: React.FC = () => {
               <DollarSign className="w-4 h-4 mr-2" />
               Fundamentals
             </TabsTrigger>
-            <TabsTrigger value="technical">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Technical
-            </TabsTrigger>
           </TabsList>
 
           {/* Chart Tab */}
           <TabsContent value="chart">
-            <StockChart
+            <EnhancedStockChart
               symbol={stockData.symbol}
               name={stockData.name}
               currentPrice={stockData.price}
@@ -261,127 +252,89 @@ const StockDetail: React.FC = () => {
             />
           </TabsContent>
 
-          {/* Fundamentals Tab */}
+          {/* Fundamentals Tab - Only show available data */}
           <TabsContent value="fundamentals">
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="font-nanum">Fundamental Analysis</CardTitle>
-                <CardDescription>Key financial metrics and ratios</CardDescription>
+                <CardDescription>Available financial metrics and ratios</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg text-foreground">Valuation</h3>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">P/E Ratio</span>
-                        <span className="font-mono font-semibold text-foreground">{stockData.pe.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">EPS</span>
-                        <span className="font-mono font-semibold text-foreground">${stockData.eps.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">Dividend Yield</span>
-                        <span className="font-mono font-semibold text-foreground">{stockData.dividendYield?.toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">Market Cap</span>
-                        <span className="font-mono font-semibold text-foreground">{formatLargeNumber(stockData.marketCap)}</span>
-                      </div>
+                      {stockData.pe && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">P/E Ratio</span>
+                          <span className="font-mono font-semibold text-foreground">{stockData.pe.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {stockData.eps && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">EPS</span>
+                          <span className="font-mono font-semibold text-foreground">${stockData.eps.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {stockData.dividendYield && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">Dividend Yield</span>
+                          <span className="font-mono font-semibold text-foreground">{stockData.dividendYield.toFixed(2)}%</span>
+                        </div>
+                      )}
+                      {stockData.marketCap > 0 && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">Market Cap</span>
+                          <span className="font-mono font-semibold text-foreground">{formatLargeNumber(stockData.marketCap)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg text-foreground">Performance</h3>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">Day High</span>
-                        <span className="font-mono font-semibold text-green-500">{formatCurrency(stockData.high)}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">Day Low</span>
-                        <span className="font-mono font-semibold text-red-500">{formatCurrency(stockData.low)}</span>
-                      </div>
+                      {stockData.high && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">Day High</span>
+                          <span className="font-mono font-semibold text-green-500">{formatCurrency(stockData.high)}</span>
+                        </div>
+                      )}
+                      {stockData.low && (
+                        <div className="flex justify-between items-center p-3 bg-muted rounded">
+                          <span className="text-muted-foreground">Day Low</span>
+                          <span className="font-mono font-semibold text-red-500">{formatCurrency(stockData.low)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center p-3 bg-muted rounded">
                         <span className="text-muted-foreground">Volume</span>
-                        <span className="font-mono font-semibold text-foreground">{stockData.volume.toLocaleString()}</span>
+                        <span className="font-mono font-semibold text-foreground">
+                          {stockData.volume ? stockData.volume.toLocaleString() : 'N/A'}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <span className="text-muted-foreground">RSI (14)</span>
+                        <span className="text-muted-foreground">Daily Change</span>
                         <span className={`font-mono font-semibold ${
-                          stockData.rsi && stockData.rsi > 70 ? 'text-red-500' : 
-                          stockData.rsi && stockData.rsi < 30 ? 'text-green-500' : 'text-foreground'
+                          stockData.change >= 0 ? 'text-green-500' : 'text-red-500'
                         }`}>
-                          {stockData.rsi?.toFixed(1)}
+                          {formatCurrency(Math.abs(stockData.change))} ({stockData.changePercent >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%)
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Technical Tab */}
-          <TabsContent value="technical">
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="font-nanum">Technical Indicators</CardTitle>
-                <CardDescription>Technical analysis and trading signals</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg text-foreground">Momentum Indicators</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <div>
-                          <div className="font-medium text-foreground">RSI (14)</div>
-                          <div className="text-xs text-muted-foreground">Relative Strength Index</div>
-                        </div>
-                        <Badge variant={
-                          stockData.rsi && stockData.rsi > 70 ? 'destructive' : 
-                          stockData.rsi && stockData.rsi < 30 ? 'default' : 'secondary'
-                        }>
-                          {stockData.rsi && stockData.rsi > 70 ? 'Overbought' : 
-                           stockData.rsi && stockData.rsi < 30 ? 'Oversold' : 'Neutral'}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <div>
-                          <div className="font-medium text-foreground">MACD</div>
-                          <div className="text-xs text-muted-foreground">Trend following indicator</div>
-                        </div>
-                        <Badge variant="default">Bullish</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-muted rounded">
-                        <div>
-                          <div className="font-medium text-foreground">Stochastic</div>
-                          <div className="text-xs text-muted-foreground">Momentum oscillator</div>
-                        </div>
-                        <Badge variant="secondary">Neutral</Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg text-foreground">Moving Averages</h3>
-                    <div className="space-y-3">
-                      {[
-                        { period: 'SMA 20', signal: 'Buy', value: stockData.price * 0.98 },
-                        { period: 'SMA 50', signal: 'Buy', value: stockData.price * 0.96 },
-                        { period: 'SMA 200', signal: 'Buy', value: stockData.price * 0.92 },
-                        { period: 'EMA 12', signal: 'Buy', value: stockData.price * 0.99 }
-                      ].map((ma) => (
-                        <div key={ma.period} className="flex justify-between items-center p-3 bg-muted rounded">
-                          <div>
-                            <div className="font-medium text-foreground">{ma.period}</div>
-                            <div className="text-xs text-muted-foreground font-mono">{formatCurrency(ma.value)}</div>
-                          </div>
-                          <Badge variant="default">{ma.signal}</Badge>
-                        </div>
-                      ))}
+                {/* Data Availability Notice */}
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-1">Data Availability Notice</h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        Some financial metrics may not be available through Yahoo Finance. 
+                        The displayed data represents all available information for this stock.
+                        Technical indicators like RSI are not included as they are not reliably available.
+                      </p>
                     </div>
                   </div>
                 </div>

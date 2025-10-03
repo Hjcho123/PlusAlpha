@@ -49,16 +49,21 @@ const AuthModal: React.FC<AuthModalProps> = ({ children, onAuthSuccess }) => {
         title: "Login Successful",
         description: `Welcome back, ${response.user.firstName}!`,
       });
-      
+
       // Store token in localStorage
       localStorage.setItem('authToken', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      
+
       onAuthSuccess?.(response.user, response.token);
       setIsOpen(false);
-      
+
       // Reset form
       setLoginForm({ email: '', password: '' });
+
+      // Force redirect to dashboard after successful login
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 200);
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -106,14 +111,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ children, onAuthSuccess }) => {
         title: "Account Created",
         description: `Welcome to PlusAlpha, ${response.user.firstName}!`,
       });
-      
+
       // Store token in localStorage
       localStorage.setItem('authToken', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
-      
+
       onAuthSuccess?.(response.user, response.token);
       setIsOpen(false);
-      
+
       // Reset form
       setRegisterForm({
         email: '',
@@ -123,6 +128,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ children, onAuthSuccess }) => {
         lastName: '',
         riskTolerance: 'moderate'
       });
+
+      // Force redirect to dashboard after successful registration
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 200);
     } catch (error: any) {
       toast({
         title: "Registration Failed",
@@ -196,7 +206,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ children, onAuthSuccess }) => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={loading}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Sign In
               </Button>
@@ -306,7 +316,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ children, onAuthSuccess }) => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={loading}>
                 {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Create Account
               </Button>

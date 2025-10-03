@@ -1,9 +1,19 @@
+import dotenv from 'dotenv';
+
+// Load environment variables FIRST
+dotenv.config({ path: '.env' });
+
+// Debug: Check if environment variables are loaded
+console.log('🔍 Server startup - GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
+console.log('🔍 Server startup - GROQ_API_KEY length:', process.env.GROQ_API_KEY?.length || 0);
+console.log('🔍 Server startup - GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
+console.log('🔍 Server startup - GEMINI_API_KEY length:', process.env.GEMINI_API_KEY?.length || 0);
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { connectMongoDB, connectRedis, gracefulShutdown } from './config/database';
 import { corsOptions, errorHandler, notFound } from './middleware/auth';
@@ -14,12 +24,10 @@ import stockRoutes from './routes/stocks';
 import aiRoutes from './routes/ai';
 import portfolioRoutes from './routes/portfolio';
 import newsRoutes from './routes/news';
+import watchlistRoutes from './routes/watchlist';
 
 // Import services
 import { WebSocketService } from './services/WebSocketService';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -87,6 +95,7 @@ app.use('/api/stocks', stockRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/watchlist', watchlistRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -102,6 +111,7 @@ app.get('/api', (req, res) => {
         ai: '/api/ai',
         portfolio: '/api/portfolio',
         news: '/api/news',
+        watchlist: '/api/watchlist',
         websocket: '/ws'
       },
       documentation: 'https://github.com/your-repo/plusalpha-backend'

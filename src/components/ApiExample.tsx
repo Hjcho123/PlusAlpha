@@ -103,7 +103,7 @@ const ApiExample: React.FC = () => {
     setError(null);
     
     try {
-      const insight = await api.ai.generateTradingSignal(symbol, 'demo-token');
+      const insight = await api.ai.generateDemoTradingSignal(symbol);
       
       // Enhance the insight with additional details
       const enhancedInsight = {
