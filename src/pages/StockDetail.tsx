@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import EnhancedStockChart from '@/components/EnhancedStockChart';
+import TradingViewWidget from '@/components/TradingViewWidget';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -243,13 +243,7 @@ const StockDetail: React.FC = () => {
 
           {/* Chart Tab */}
           <TabsContent value="chart">
-            <EnhancedStockChart
-              symbol={stockData.symbol}
-              name={stockData.name}
-              currentPrice={stockData.price}
-              change={stockData.change}
-              changePercent={stockData.changePercent}
-            />
+            <TradingViewWidget symbol={stockData.symbol} />
           </TabsContent>
 
           {/* Fundamentals Tab - Only show available data */}

@@ -254,7 +254,9 @@ export class WebSocketService {
       }
     }, 30000); // 30 seconds
 
-    // Generate AI insights every 5 minutes for popular symbols
+    // DISABLED: Auto AI insights every 5 minutes for popular symbols (causing ghost requests)
+    // Uncomment only for production AI-supported features
+    /*
     setInterval(async () => {
       const popularSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN'];
 
@@ -270,6 +272,9 @@ export class WebSocketService {
         console.error('Error generating AI insights:', error);
       }
     }, 300000); // 5 minutes
+    */
+
+    console.log('⚠️  Auto AI generation DISABLED for testing - no ghost requests');
 
     console.log('Data broadcasting started');
   }

@@ -9,14 +9,14 @@ const TEMP_EMPTY = [];
 
 export class StockDataService {
   private redisClient: ReturnType<typeof createClient> | null = null;
-  private readonly CACHE_TTL = 3600; // 1 hour fixed cache
+  private readonly CACHE_TTL = 60; // 1 minute for near real-time data
   private readonly dashboardSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN'];
   
   constructor() {
     this.initializeRedis();
-    // Schedule hourly updates at :00 every hour
-    cron.schedule('0 * * * *', () => this.refreshDashboardStocks());
-    // Note: startHourlyRefresh method would be implemented here if needed
+    // Schedule minute updates for near real-time data
+    cron.schedule('*/1 * * * *', () => this.refreshDashboardStocks());
+    // Note: now runs every minute instead of every hour
   }
 
   private async initializeRedis() {
@@ -31,24 +31,37 @@ export class StockDataService {
   }
 
   // Get real-time stock data from Yahoo Finance
-  async getStockData(symbol: string): Promise<StockDataDocument | null> {
+  async getStockData(symbol: string, forceRefresh: boolean = false): Promise<StockDataDocument | null> {
     try {
-      // Check cache first
+      console.log(`[STOCK_DATA_SERVICE] Fetching ${symbol}, forceRefresh: ${forceRefresh}`);
+
+      // Check cache first (but only use if less than 5 seconds old for true real-time)
       const cacheKey = `stock:${symbol.toUpperCase()}`;
       const cached = await this.getFromCache(cacheKey);
-      if (cached && this.isValidStockData(cached)) {
-        console.log(`Using cached data for ${symbol}`);
-        return cached;
+
+      if (cached && this.isValidStockData(cached) && !forceRefresh) {
+        const cacheAge = Date.now() - new Date(cached.lastUpdated).getTime();
+
+        // Only use cache if it's less than 5 seconds old for ultra-real-time
+        if (cacheAge < 5000) { // 5 seconds
+          console.log(`Using cached data for ${symbol} (${Math.round(cacheAge/1000)}s old)`);
+          return cached;
+        } else {
+          console.log(`Cached data for ${symbol} is ${Math.round(cacheAge/1000)}s old, fetching fresh data`);
+        }
+      } else if (forceRefresh) {
+        console.log(`Force refresh requested for ${symbol}, bypassing cache`);
       }
 
-      // Fetch from Yahoo Finance API
+      // Always fetch fresh data from Yahoo Finance API for true real-time
+      console.log(`Fetching fresh data for ${symbol} from Yahoo Finance`);
       const stockData = await this.fetchFromYahooFinance(symbol);
 
       if (stockData && this.isValidStockData(stockData)) {
         // Save to database
         await this.saveStockData(stockData);
 
-        // Cache the result
+        // Cache the result for 60 seconds (but we fetch fresh every time anyway)
         await this.setCache(cacheKey, stockData, this.CACHE_TTL);
 
         return stockData;
@@ -316,7 +329,7 @@ export class StockDataService {
         volume: quote.regularMarketVolume,
         marketCap: stats.summaryDetail.marketCap,
         pe: stats.summaryDetail.trailingPE,
-        eps: stats.summaryDetail.epsTrailingTwelveMonths,
+        eps: (stats.summaryDetail as any).epsTrailingTwelveMonths,
         dividend: stats.summaryDetail.dividendRate,
         high52Week: stats.summaryDetail.fiftyTwoWeekHigh,
         low52Week: stats.summaryDetail.fiftyTwoWeekLow,

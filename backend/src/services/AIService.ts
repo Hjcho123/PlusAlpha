@@ -17,33 +17,11 @@ export class AIService {
     // Environment variables will be checked when actually needed
   }
 
-  // Test if Gemini API is working
+  // Test if Gemini API is working - REMOVED TO PREVENT RATE LIMITING
+  // This test was causing 429 errors by making unnecessary API calls
   private async testGeminiAPI(): Promise<boolean> {
-    if (!this.GEMINI_API_KEY) return false;
-
-    try {
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
-        {
-          contents: [{
-            parts: [{
-              text: 'Hello'
-            }]
-          }]
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          timeout: 600000 // 10 minute timeout for test
-        }
-      );
-
-      return response.status === 200;
-    } catch (error) {
-      console.warn('❌ Gemini API test failed:', error.message);
-      return false;
-    }
+    // Always return true and let the actual API call handle errors gracefully
+    return !!this.GEMINI_API_KEY;
   }
 
   // Generate trading signal for a stock

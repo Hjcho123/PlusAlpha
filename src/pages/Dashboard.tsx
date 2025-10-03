@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import TickerTapeWidget from "@/components/TickerTapeWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -190,12 +191,14 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('watchlist');
   const [marketStatus, setMarketStatus] = useState<'open' | 'closed' | 'after-hours'>('open');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [chatMessages, setChatMessages] = useState<{[key: string]: Array<{question: string, answer: string, timestamp: Date}>}>({});
   const [chatInput, setChatInput] = useState<{[key: string]: string}>({});
   const [chatLoading, setChatLoading] = useState<{[key: string]: boolean}>({});
+  const chatRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const [refreshCounters, setRefreshCounters] = useState<{[key: string]: number}>({});
 
   // Load user's watchlist from backend
   useEffect(() => {
@@ -203,6 +206,16 @@ const Dashboard = () => {
       loadUserWatchlist();
     }
   }, [isAuthenticated, token]);
+
+  // Auto-scroll to bottom of chat when new messages arrive
+  useEffect(() => {
+    Object.keys(chatMessages).forEach(insightId => {
+      const containerRef = chatRefs.current[insightId];
+      if (containerRef) {
+        containerRef.scrollTop = containerRef.scrollHeight;
+      }
+    });
+  }, [chatMessages]);
 
   const loadUserWatchlist = async () => {
     if (!isAuthenticated || !token) {
@@ -431,18 +444,72 @@ const Dashboard = () => {
     }
   };
 
-  const refreshAllData = async () => {
+  const refreshAllData = async (forceRefresh: boolean = false) => {
     setLoading(true);
+    const startTime = Date.now();
+
     try {
-      const refreshPromises = watchlist.map(stock => fetchRealStockData(stock.symbol));
-      const updatedStocks = await Promise.all(refreshPromises);
-      setWatchlist(updatedStocks.filter(stock => stock !== null) as DetailedStockData[]);
+      // For now, both normal refresh and force refresh will fetch fresh data
+      // (The backend now fetches fresh data every time)
+      const updatedStocks = await Promise.all(
+        watchlist.map(stock => fetchRealStockData(stock.symbol))
+      );
+
+      const validStocks = updatedStocks.filter(stock => stock !== null) as DetailedStockData[];
+      console.log(`[REFRESH] Fetched ${validStocks.length} stocks (${forceRefresh ? 'force' : 'normal'} refresh)`);
+
+      // Track price changes for debugging
+      const priceChanges = validStocks.map((newStock, index) => {
+        const oldStock = watchlist[index];
+        const priceDiff = oldStock ? newStock.price - oldStock.price : 0;
+        return {
+          symbol: newStock.symbol,
+          oldPrice: oldStock ? oldStock.price : 'new',
+          newPrice: newStock.price,
+          diff: priceDiff,
+          significant: Math.abs(priceDiff) >= 0.01
+        };
+      });
+
+      // Always update refresh counters (regardless of data success)
+      setRefreshCounters(prev => {
+        const newCounters = { ...prev };
+        watchlist.forEach(stock => {
+          const symbol = stock.symbol;
+          newCounters[symbol] = ((newCounters[symbol] || 0) + 1) % 1000;
+        });
+        return newCounters;
+      });
+
+      // Update watchlist with new data
+      setWatchlist(validStocks);
       setLastUpdated(new Date());
+
+      // Debug logging for price changes
+      const significantChanges = priceChanges.filter(change => change.significant);
+      console.log(`[REFRESH] Price changes: ${significantChanges.length} significant, ${priceChanges.length - significantChanges.length} minor`);
+
+      if (significantChanges.length > 0) {
+        console.log(`[REFRESH] Significant changes:`, significantChanges);
+      }
+
+      const refreshTime = Date.now() - startTime;
       toast({
-        title: "Data Refreshed",
-        description: `Updated at ${new Date().toLocaleTimeString()}`,
+        title: `${forceRefresh ? "Force" : ""} Refreshed (${refreshTime}ms)`,
+        description: `${validStocks.length} stocks updated • ${significantChanges.length} price changes`,
       });
     } catch (error) {
+      console.error('[REFRESH] Error:', error);
+      // Still increment counters even on error
+      setRefreshCounters(prev => {
+        const newCounters = { ...prev };
+        watchlist.forEach(stock => {
+          const symbol = stock.symbol;
+          newCounters[symbol] = ((newCounters[symbol] || 0) + 1) % 1000;
+        });
+        return newCounters;
+      });
+
       toast({
         title: "Refresh Failed",
         description: "Could not update all stock data",
@@ -458,25 +525,39 @@ const Dashboard = () => {
     if (!isAuthenticated || !token || !message.trim()) return;
 
     const insightId = symbol;
+
+    // First add the user question to chat messages
+    const chatEntry = {
+      question: message.trim(),
+      answer: '', // Will be filled when response arrives
+      timestamp: new Date(),
+      isLoading: true
+    };
+
+    setChatMessages(prev => ({
+      ...prev,
+      [insightId]: [...(prev[insightId] || []), chatEntry]
+    }));
+
+    // Clear input immediately
+    setChatInput(prev => ({ ...prev, [insightId]: '' }));
+
+    // Set loading state
     setChatLoading(prev => ({ ...prev, [insightId]: true }));
 
     try {
       const response = await api.ai.chatAboutStock(token, symbol, message.trim(), insightContext);
 
       if (response) {
-        const chatEntry = {
-          question: message.trim(),
-          answer: response.response,
-          timestamp: new Date()
-        };
-
+        // Update the last message with the response
         setChatMessages(prev => ({
           ...prev,
-          [insightId]: [...(prev[insightId] || []), chatEntry]
+          [insightId]: (prev[insightId] || []).map((msg, idx) =>
+            idx === (prev[insightId] || []).length - 1
+              ? { ...msg, answer: response.response, isLoading: false }
+              : msg
+          )
         }));
-
-        // Clear input
-        setChatInput(prev => ({ ...prev, [insightId]: '' }));
 
         toast({
           title: "AI Response",
@@ -485,6 +566,15 @@ const Dashboard = () => {
       }
     } catch (error: any) {
       console.error('Error sending chat message:', error);
+      // Update with error state
+      setChatMessages(prev => ({
+        ...prev,
+        [insightId]: (prev[insightId] || []).map((msg, idx) =>
+          idx === (prev[insightId] || []).length - 1
+            ? { ...msg, answer: 'Sorry, there was an error generating a response.', isLoading: false }
+            : msg
+        )
+      }));
       toast({
         title: "Chat Error",
         description: "Could not send message",
@@ -505,7 +595,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      
+
       {/* Market Status Bar */}
       <div className="bg-card border-b border-border py-2">
         <div className="container mx-auto px-6">
@@ -513,26 +603,37 @@ const Dashboard = () => {
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${
-                  marketStatus === 'open' ? 'bg-green-500 animate-pulse' : 
+                  marketStatus === 'open' ? 'bg-green-500 animate-pulse' :
                   marketStatus === 'after-hours' ? 'bg-yellow-500' : 'bg-red-500'
                 }`} />
                 <span className="font-medium text-foreground">
-                  {marketStatus === 'open' ? 'Market Open' : 
+                  {marketStatus === 'open' ? 'Market Open' :
                    marketStatus === 'after-hours' ? 'After Hours' : 'Market Closed'}
                 </span>
               </div>
               <span className="text-muted-foreground">Last Updated: {lastUpdated.toLocaleTimeString()}</span>
             </div>
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={refreshAllData}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshAllData(false)}
                 disabled={loading}
                 className="gap-2"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshAllData(true)}
+                disabled={loading}
+                className="gap-2 text-blue-500 hover:text-blue-600"
+                title="Force refresh all data from sources"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Force Refresh
               </Button>
             </div>
           </div>
@@ -553,11 +654,11 @@ const Dashboard = () => {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-foreground">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </div>
               <div className="text-muted-foreground text-sm">
@@ -565,6 +666,11 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* TradingView Ticker Tape */}
+        <div className="mb-5 bg-black border border-blue-600 rounded-lg overflow-hidden" style={{minHeight: '40px'}}>
+          <TickerTapeWidget />
         </div>
 
         {/* Enhanced Controls */}
@@ -598,13 +704,13 @@ const Dashboard = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+            <TabsTrigger value="watchlist" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Watchlist</TabsTrigger>
             <TabsTrigger value="insights" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">AI Insights</TabsTrigger>
             <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">News & Events</TabsTrigger>
           </TabsList>
 
-          {/* Enhanced Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
+          {/* Enhanced Watchlist Tab */}
+          <TabsContent value="watchlist" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {watchlist.map((stock) => (
                 <Card 
@@ -644,6 +750,15 @@ const Dashboard = () => {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="text-2xl font-bold font-mono">{formatCurrency(stock.price)}</div>
+
+                      {/* Refresh Counter */}
+                      <div className="flex justify-center">
+                        <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md">
+                          <span className="text-sm font-mono text-blue-600">
+                            Refreshes: {refreshCounters[stock.symbol] || 0}
+                          </span>
+                        </div>
+                      </div>
                       
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div className="space-y-1">
@@ -824,23 +939,55 @@ const Dashboard = () => {
 
                         {/* Chat Messages */}
                         {chatMessages[insight.symbol] && chatMessages[insight.symbol].length > 0 && (
-                          <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-                            {chatMessages[insight.symbol].map((message, index) => (
-                              <div key={index} className="space-y-2">
-                                {/* User Question */}
-                                <div className="flex justify-end">
-                                  <div className="bg-blue-500 text-white px-3 py-2 rounded-lg max-w-xs text-sm">
-                                    {message.question}
+                          <div
+                            className="space-y-3 mb-4 max-h-60 overflow-y-auto"
+                            ref={(el) => chatRefs.current[insight.symbol] = el}
+                          >
+                            {chatMessages[insight.symbol].map((message, index) => {
+                              const isThinking = chatLoading[insight.symbol] && index === chatMessages[insight.symbol].length - 1;
+                              return (
+                                <div key={index} className="space-y-2">
+                                  {/* User Question */}
+                                  <div className="flex justify-end">
+                                    <div className="bg-blue-500 text-white px-3 py-2 rounded-lg max-w-xs text-sm">
+                                      {message.question}
+                                    </div>
+                                  </div>
+                                  {/* AI Answer */}
+                                  <div className="flex justify-start items-start gap-2">
+                                    {/* Crystal ball on the left side */}
+                                    <div className="flex-shrink-0 flex items-start justify-center w-8 h-8 rounded-full shadow-lg relative overflow-hidden">
+                                      {isThinking ? (
+                                        <div className="w-full h-full animate-spin">
+                                          <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                                        </div>
+                                      ) : (
+                                        <div className="w-full h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                                      )}
+                                      {/* Mystical shine */}
+                                      <div className={`absolute inset-0 rounded-full transition-opacity duration-500 ${
+                                        isThinking ? 'bg-gradient-to-br from-white/20 via-transparent to-white/20 opacity-60' : 'opacity-0'
+                                      }`}></div>
+                                    </div>
+                                    {/* Text bubble */}
+                                    <div className="bg-muted text-foreground px-3 py-2 rounded-lg max-w-md text-sm">
+                                      {isThinking ? (
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex space-x-1">
+                                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                          </div>
+                                          <span className="text-xs italic text-muted-foreground">Gemini is thinking...</span>
+                                        </div>
+                                      ) : (
+                                        message.answer
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                                {/* AI Answer */}
-                                <div className="flex justify-start">
-                                  <div className="bg-muted text-foreground px-3 py-2 rounded-lg max-w-md text-sm">
-                                    {message.answer}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
 

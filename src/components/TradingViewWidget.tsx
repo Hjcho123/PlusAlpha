@@ -1,52 +1,60 @@
-
 import { useEffect, useRef, memo } from 'react';
 
 interface TradingViewWidgetProps {
   symbol: string;
 }
 
-const TradingViewWidget = ({ symbol }: TradingViewWidgetProps) => {
+function TradingViewWidget({ symbol }: TradingViewWidgetProps) {
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!container.current || !symbol) return;
-    
-    // Clear previous widget instance
+    if (!container.current) return;
+
     container.current.innerHTML = '';
-    
+
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.type = 'text/javascript';
     script.async = true;
-    script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: `NASDAQ:${symbol}`,
-      interval: 'D',
-      timezone: 'Etc/UTC',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      hide_top_toolbar: false,
-      hide_legend: false,
-      allow_symbol_change: true,
-      save_image: true,
-      container_id: `tradingview_${symbol}`,
-      studies: ['MASimple@tv-basicstudies'],
-      backgroundColor: 'rgba(0, 0, 0, 0)',
-      gridColor: 'rgba(255, 255, 255, 0.06)'
-    });
+    script.text = `{
+      "allow_symbol_change": true,
+      "calendar": false,
+      "details": true,
+      "hide_side_toolbar": false,
+      "hide_top_toolbar": false,
+      "hide_legend": false,
+      "hide_volume": false,
+      "hotlist": false,
+      "interval": "D",
+      "locale": "en",
+      "save_image": true,
+      "style": "1",
+      "symbol": "${symbol}",
+      "theme": "dark",
+      "timezone": "Etc/UTC",
+      "backgroundColor": "#0F0F0F",
+      "gridColor": "rgba(242, 242, 242, 0.06)",
+      "watchlist": [],
+      "withdateranges": false,
+      "compareSymbols": [],
+      "studies": [],
+      "autosize": true
+    }`;
 
     container.current.appendChild(script);
-
   }, [symbol]);
 
   return (
-    <div className="h-[600px] w-full">
-      <div ref={container} className="tradingview-widget-container__widget" />
-      <div className="mt-2 text-xs text-muted-foreground">
-        Data provided by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>
+    <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>
+      <div className="tradingview-widget-container__widget" style={{ height: "calc(100% - 32px)", width: "100%" }}></div>
+      <div className="tradingview-widget-copyright">
+        <a href={`https://www.tradingview.com/symbols/${symbol.replace(':', '-')}/`} rel="noopener nofollow" target="_blank">
+          <span className="blue-text">{symbol} stock chart</span>
+        </a>
+        <span className="trademark"> by TradingView</span>
       </div>
     </div>
   );
-};
+}
 
 export default memo(TradingViewWidget);
