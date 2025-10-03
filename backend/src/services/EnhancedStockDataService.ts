@@ -5,8 +5,6 @@ import { stockDataService } from './StockDataService';
 export class EnhancedStockDataService {
   private readonly ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
   private readonly FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-  private readonly ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
-  private readonly FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 
   constructor() {
     console.log(`🔍 Enhanced Stock Data Service initialized`);
@@ -25,7 +23,7 @@ export class EnhancedStockDataService {
       }
 
       const enhancedData = {
-        ...basicData,
+        ...basicData.toObject(),
         enhancedMetrics: {},
         technicalIndicators: {},
         fundamentalData: {},
@@ -58,8 +56,8 @@ export class EnhancedStockDataService {
       }
 
       return enhancedData;
-    } catch (error: any) {
-      console.error(`Enhanced stock data error for ${symbol}:`, error.message);
+    } catch (error) {
+      console.error(`Enhanced stock data error for ${symbol}:`, error);
       return null;
     }
   }
@@ -296,14 +294,8 @@ export class EnhancedStockDataService {
   // Get market overview with enhanced data
   async getEnhancedMarketOverview(): Promise<any> {
     try {
-      // Return basic overview since getMarketOverview method doesn't exist
-      const basicOverview = {
-        marketCap: 0,
-        totalValue: 0,
-        topStocks: [],
-        marketIndices: []
-      };
-
+      const basicOverview = await stockDataService.getMarketOverview();
+      
       if (!this.ALPHA_VANTAGE_API_KEY && !this.FINNHUB_API_KEY) {
         return basicOverview;
       }
@@ -319,12 +311,7 @@ export class EnhancedStockDataService {
       return enhancedOverview;
     } catch (error) {
       console.error('Enhanced market overview error:', error);
-      return {
-        marketCap: 0,
-        totalValue: 0,
-        topStocks: [],
-        marketIndices: []
-      };
+      return await stockDataService.getMarketOverview();
     }
   }
 

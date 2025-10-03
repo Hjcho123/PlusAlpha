@@ -185,19 +185,6 @@ export const aiAPI = {
     return result.data!;
   },
 
-  // Analyze stock with provided data (sends real stock data to Gemini)
-  analyzeStockWithData: async (stockData: any): Promise<AIInsight> => {
-    const response = await fetch(`${API_BASE_URL}/ai/analyze-with-data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(stockData)
-    });
-    const result = await handleResponse<AIInsight>(response);
-    return result.data!;
-  },
-
   // Generate market analysis
   generateMarketAnalysis: async (symbols: string[]): Promise<AIInsight> => {
     const response = await fetch(`${API_BASE_URL}/ai/market-analysis`, {

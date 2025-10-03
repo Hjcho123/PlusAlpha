@@ -12,7 +12,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import SearchSuggestions from "@/components/SearchSuggestions";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
 import {
   TrendingUp,
   TrendingDown,
@@ -393,42 +392,20 @@ const Dashboard = () => {
 
     setLoading(true);
     try {
-      // Get the actual stock data from our watchlist (real data from Yahoo Finance)
-      const stockData = watchlist.find(stock => stock.symbol === symbol);
-
-      if (!stockData) {
-        console.error(`No stock data found for ${symbol}`);
-        toast({
-          title: "Data Not Found",
-          description: `Could not find data for ${symbol}. Please refresh.`,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log(`Generating AI insight for ${symbol} with real data:`, {
-        price: stockData.price,
-        change: stockData.change,
-        changePercent: stockData.changePercent,
-        marketCap: stockData.marketCap,
-        volume: stockData.volume
-      });
-
-      // Send the actual stock data to Gemini AI for analysis
-      const insight = await api.ai.analyzeStockWithData(stockData);
+      const insight = await api.ai.generateDemoTradingSignal(symbol);
 
       if (insight) {
         const newInsight = {
           _id: insight._id || insight.id || `insight-${Date.now()}`,
-          symbol: insight.symbol || symbol,
+          symbol: insight.symbol,
           title: insight.title,
           description: insight.description,
           confidence: insight.confidence,
           action: insight.action,
           reasoning: insight.reasoning,
-          timestamp: new Date(),
+          timestamp: new Date(insight.createdAt),
           priority: insight.confidence >= 80 ? 'high' : insight.confidence >= 60 ? 'medium' : 'low',
-          type: insight.type || 'trading_signal'
+          type: insight.type
         };
         setInsights(prev => [newInsight, ...prev.slice(0, 5)]);
         toast({
@@ -484,16 +461,7 @@ const Dashboard = () => {
     setChatLoading(prev => ({ ...prev, [insightId]: true }));
 
     try {
-      // Include the current insight context for better AI responses
-      const currentInsight = insights.find(i => i.symbol === symbol);
-      const contextToSend = currentInsight ? {
-        description: currentInsight.description,
-        action: currentInsight.action,
-        confidence: currentInsight.confidence,
-        reasoning: currentInsight.reasoning
-      } : insightContext;
-
-      const response = await api.ai.chatAboutStock(token, symbol, message.trim(), contextToSend);
+      const response = await api.ai.chatAboutStock(token, symbol, message.trim(), insightContext);
 
       if (response) {
         const chatEntry = {
@@ -512,14 +480,14 @@ const Dashboard = () => {
 
         toast({
           title: "AI Response",
-          description: "Expert analysis provided",
+          description: "Received answer to your question",
         });
       }
     } catch (error: any) {
       console.error('Error sending chat message:', error);
       toast({
         title: "Chat Error",
-        description: "Could not get AI response",
+        description: "Could not send message",
         variant: "destructive"
       });
     } finally {
@@ -838,58 +806,20 @@ const Dashboard = () => {
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* Executive Summary */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-lg text-foreground flex items-center gap-2">
-                          📋 Executive Summary
-                        </h4>
-                        <MarkdownRenderer
-                          content={insight.description || "Comprehensive AI analysis of the stock"}
-                          className="text-foreground leading-relaxed"
-                        />
-                      </div>
-
-                      {/* Key Analysis Points */}
-                      <div className="space-y-3">
-                        <h4 className="font-semibold text-lg text-foreground flex items-center gap-2">
-                          🔍 Analysis Highlights
-                        </h4>
-                        <div className="grid gap-2">
-                          {insight.reasoning?.map((reason: string, index: number) => (
-                            <div key={index} className="p-3 bg-muted rounded-lg border border-border">
-                              <MarkdownRenderer
-                                content={reason}
-                                className="text-foreground text-sm leading-relaxed"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* AI Methodology Note */}
-                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-start gap-3">
-                          <Brain className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                              🧠 AI-Powered Analysis
-                            </p>
-                            <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                              This analysis uses Google Gemini AI, trained on comprehensive market data including valuation metrics,
-                              technical indicators, sector comparisons, and risk factors. All insights are derived from real-time
-                              Yahoo Finance data and institutional-grade analytical frameworks.
-                            </p>
-                          </div>
-                        </div>
+                    <CardContent className="space-y-4">
+                      <p className="text-foreground leading-relaxed">{insight.description}</p>
+                      <div className="p-3 bg-muted rounded-lg border border-border">
+                        <p className="text-sm text-muted-foreground">
+                          <strong>Note:</strong> This is a basic analysis based on available market data.
+                          For comprehensive technical analysis, please use dedicated financial analysis tools.
+                        </p>
                       </div>
 
                       {/* Chat Interface */}
-                      <div className="border-t border-border pt-6 mt-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <Lightbulb className="w-5 h-5 text-blue-500" />
-                          <h4 className="font-semibold text-foreground">Ask Expert Questions</h4>
-                          <span className="text-xs text-muted-foreground">(Powered by Gemini AI)</span>
+                      <div className="border-t border-border pt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Lightbulb className="w-4 h-4 text-blue-500" />
+                          <h4 className="text-sm font-medium text-foreground">Ask questions about {insight.symbol}</h4>
                         </div>
 
                         {/* Chat Messages */}
@@ -905,11 +835,8 @@ const Dashboard = () => {
                                 </div>
                                 {/* AI Answer */}
                                 <div className="flex justify-start">
-                                  <div className="bg-muted text-foreground px-3 py-2 rounded-lg max-w-md">
-                                    <MarkdownRenderer
-                                      content={message.answer}
-                                      className="text-sm leading-relaxed"
-                                    />
+                                  <div className="bg-muted text-foreground px-3 py-2 rounded-lg max-w-md text-sm">
+                                    {message.answer}
                                   </div>
                                 </div>
                               </div>

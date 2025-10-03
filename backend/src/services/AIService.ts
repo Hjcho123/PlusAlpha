@@ -8,68 +8,108 @@ import { stockDataService } from './StockDataService';
 import { enhancedStockDataService } from './EnhancedStockDataService';
 
 export class AIService {
-  private readonly GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  private readonly USE_FREE_AI = process.env.USE_FREE_AI === 'true' || !this.GEMINI_API_KEY;
-  private readonly HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
-  private readonly OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  private get GEMINI_API_KEY(): string | undefined {
+    return process.env.GEMINI_API_KEY;
+  }
 
   constructor() {
-    console.log(`🤖 AI Service initialized with ${this.GEMINI_API_KEY ? 'Gemini AI' : 'FREE alternatives'}`);
+    // Don't log here to avoid premature initialization
+    // Environment variables will be checked when actually needed
+  }
+
+  // Test if Gemini API is working
+  private async testGeminiAPI(): Promise<boolean> {
+    if (!this.GEMINI_API_KEY) return false;
+
+    try {
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: 'Hello'
+            }]
+          }]
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 600000 // 10 minute timeout for test
+        }
+      );
+
+      return response.status === 200;
+    } catch (error) {
+      console.warn('❌ Gemini API test failed:', error.message);
+      return false;
+    }
   }
 
   // Generate trading signal for a stock
   async generateTradingSignal(symbol: string, userId?: string): Promise<AIInsight | null> {
     try {
-      console.log(`📊 Starting AI analysis for ${symbol}`);
+      console.log(`🔍 Starting generateTradingSignal for ${symbol}`);
 
-      // Get basic stock data first (works reliably)
-      const basicData = await stockDataService.getStockData(symbol);
-      if (!basicData) {
-        throw new Error(`No basic data available for ${symbol}`);
+      // Get current stock data from Yahoo Finance
+      console.log(`📥 Fetching current stock data for ${symbol}...`);
+      const stockData = await stockDataService.getStockData(symbol);
+
+      if (!stockData) {
+        console.error(`❌ No stock data available for ${symbol}`);
+        throw new Error(`No stock data available for ${symbol}`);
       }
-      console.log(`✅ Got basic data for ${symbol}: $${basicData.price}`);
 
-      // Try to get enhanced data, but fall back gracefully
+      console.log(`📊 Stock data retrieved:`, {
+        symbol: stockData.symbol,
+        price: stockData.price,
+        change: stockData.change,
+        changePercent: stockData.changePercent,
+        volume: stockData.volume
+      });
+
+      // Get enhanced data if available (optional)
       let enhancedData = null;
       try {
         enhancedData = await enhancedStockDataService.instance.getEnhancedStockData(symbol);
-        console.log(`✅ Enhanced data loaded for ${symbol}`);
-    } catch (enhancedError: any) {
-      console.warn(`⚠️ Enhanced data failed for ${symbol}, using basic data only:`, enhancedError.message);
-      enhancedData = basicData; // Fallback to basic data
-    }
-
-      // Get market data
-      const marketData = await stockDataService.getMarketData(symbol, '3mo');
-      console.log(`✅ Got market data for ${symbol}: ${marketData.length} data points`);
-
-      if (!enhancedData || marketData.length === 0) {
-        throw new Error(`Insufficient data for ${symbol}`);
+        console.log(`📈 Enhanced data:`, enhancedData ? 'Retrieved' : 'Not available');
+      } catch (error: any) {
+        console.log(`⚠️ Enhanced data not available for ${symbol}, using basic data`);
       }
 
-      // Calculate technical indicators (enhanced with Alpha Vantage data)
-      const technicalIndicators = await this.calculateEnhancedTechnicalIndicators(marketData, enhancedData.technicalIndicators);
+      console.log(`🤖 Generating AI analysis...`);
+      // Generate AI analysis using current stock data
+      const analysis = await this.generateStockAnalysisWithCurrentData(symbol, stockData, enhancedData);
+      console.log(`✅ Analysis generated:`, analysis ? 'Success' : 'Failed - analysis is null');
 
-      // Generate enhanced AI analysis
-      const analysis = await this.generateEnhancedStockAnalysis(symbol, enhancedData, marketData, technicalIndicators);
+      if (!analysis) {
+        console.error(`❌ Analysis generation returned null for ${symbol}`);
+        return null;
+      }
 
+      console.log(`✅ Analysis generated:`, analysis.action, analysis.confidence);
+
+      console.log(`💾 Creating AI insight document...`);
       // Create AI insight
       const insight = new AIInsightModel({
         userId,
         symbol: symbol.toUpperCase(),
         type: 'trading_signal',
-        title: `Enhanced Trading Signal: ${symbol}`,
+        title: `AI Trading Signal: ${symbol}`,
         description: analysis.description,
         confidence: analysis.confidence,
         action: analysis.action,
         reasoning: analysis.reasoning,
-        technicalIndicators: technicalIndicators
+        technicalIndicators: [] // No technical indicators without historical data
       });
 
+      console.log(`💾 Saving insight to database...`);
       await insight.save();
+      console.log(`✅ Insight saved successfully for ${symbol}`);
       return insight;
     } catch (error) {
-      console.error(`Error generating trading signal for ${symbol}:`, error);
+      console.error(`❌ Error generating trading signal for ${symbol}:`, error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
       return null;
     }
   }
@@ -331,16 +371,36 @@ export class AIService {
     marketData: any[],
     indicators: TechnicalIndicator[]
   ): Promise<any> {
+    console.log(`🔍 generateEnhancedStockAnalysis - GEMINI_API_KEY exists:`, !!this.GEMINI_API_KEY);
+
     if (this.GEMINI_API_KEY) {
-      console.log(`🤖 Using Gemini AI for enhanced analysis of ${symbol}`);
-      return this.generateGeminiAnalysis(symbol, enhancedData, marketData, indicators);
+      console.log(`🤖 Using Gemini API for enhanced analysis of ${symbol}`);
+      const result = await this.generateGeminiAnalysis(symbol, enhancedData, marketData, indicators);
+      console.log(`✅ Gemini analysis result:`, result ? 'Success' : 'Failed');
+      return result;
     } else {
-      console.log(`📊 Gemini API key not found, using rule-based analysis for ${symbol}`);
-      return this.generateEnhancedFreeAnalysis(symbol, enhancedData, marketData, indicators);
+      console.log(`📊 Using enhanced rule-based analysis for ${symbol}`);
+      const result = this.performEnhancedRuleBasedAnalysis(symbol, enhancedData, marketData, indicators);
+      console.log(`✅ Enhanced rule-based analysis result:`, result ? 'Success' : 'Failed');
+      return result;
     }
   }
 
-  // Generate AI analysis using free alternatives
+  // Generate AI analysis using current stock data only
+  private async generateStockAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any): Promise<any> {
+    console.log(`🤖 Generating AI analysis with current data for ${symbol}`);
+
+    // Check if Gemini API key is valid by testing it first
+    if (this.GEMINI_API_KEY && await this.testGeminiAPI()) {
+      console.log(`🤖 Using REAL Gemini API for current data analysis of ${symbol}`);
+      return this.generateGeminiAnalysisWithCurrentData(symbol, stockData, enhancedData);
+    } else {
+      console.log(`❌ Gemini API not available or invalid - returning null to indicate no real AI`);
+      return null; // Return null so the controller will return an error
+    }
+  }
+
+  // Generate AI analysis using Gemini or rule-based fallback
   private async generateStockAnalysis(
     symbol: string,
     stockData: any,
@@ -348,66 +408,90 @@ export class AIService {
     indicators: TechnicalIndicator[]
   ): Promise<any> {
     if (this.GEMINI_API_KEY) {
-      console.log(`🤖 Using Gemini AI for analysis of ${symbol}`);
       return this.generateGeminiAnalysis(symbol, stockData, marketData, indicators);
     } else {
-      console.log(`📊 Gemini API key not found, using rule-based analysis for ${symbol}`);
-      return this.generateFreeAnalysis(symbol, stockData, marketData, indicators);
+      return this.performRuleBasedAnalysis(symbol, stockData, marketData, indicators);
     }
   }
 
-  // Enhanced free AI analysis with Alpha Vantage and Finnhub data
-  private async generateEnhancedFreeAnalysis(
-    symbol: string, 
-    enhancedData: any, 
-    marketData: any[], 
+  // Gemini AI analysis (primary method)
+  private async generateGeminiAnalysis(
+    symbol: string,
+    stockData: any,
+    marketData: any[],
     indicators: TechnicalIndicator[]
   ): Promise<any> {
-    try {
-      // Enhanced rule-based analysis with additional data sources
-      const analysis = this.performEnhancedRuleBasedAnalysis(symbol, enhancedData, marketData, indicators);
-      
-      // Try Hugging Face for enhanced analysis (if API key available)
-      if (this.HUGGINGFACE_API_KEY) {
-        try {
-          const enhancedAnalysis = await this.generateHuggingFaceAnalysis(symbol, enhancedData, analysis);
-          return enhancedAnalysis;
-        } catch (error) {
-          console.warn('Hugging Face API failed, using enhanced rule-based analysis:', error);
-        }
-      }
-      
-      return analysis;
-    } catch (error) {
-      console.error('Enhanced free AI analysis error:', error);
-      return this.getFallbackAnalysis(symbol);
-    }
-  }
+    const prompt = `
+Analyze the following stock data and provide a trading recommendation:
 
-  // Free AI analysis using rule-based system and Hugging Face
-  private async generateFreeAnalysis(
-    symbol: string, 
-    stockData: any, 
-    marketData: any[], 
-    indicators: TechnicalIndicator[]
-  ): Promise<any> {
+Stock: ${symbol}
+Current Price: $${stockData.price}
+Change: ${stockData.change} (${stockData.changePercent}%)
+Volume: ${stockData.volume}
+Market Cap: $${stockData.marketCap}
+PE Ratio: ${stockData.pe}
+
+Technical Indicators:
+${indicators.map(ind => `- ${ind.name}: ${ind.value} (${ind.signal})`).join('\n')}
+
+Recent Price Trend (last 10 days):
+${marketData.slice(-10).map(d => `${d.timestamp.toISOString().split('T')[0]}: $${d.close}`).join('\n')}
+
+Provide:
+1. A brief analysis (2-3 sentences)
+2. Trading recommendation (buy/sell/hold/watch)
+3. Confidence level (0-100)
+4. Key reasoning points (3-5 bullet points)
+
+Format as JSON:
+{
+  "description": "Brief analysis...",
+  "action": "buy|sell|hold|watch",
+  "confidence": 85,
+  "reasoning": ["Point 1", "Point 2", "Point 3"]
+}
+`;
+
     try {
-      // Rule-based analysis
-      const analysis = this.performRuleBasedAnalysis(symbol, stockData, marketData, indicators);
-      
-      // Try Hugging Face for enhanced analysis (if API key available)
-      if (this.HUGGINGFACE_API_KEY) {
-        try {
-          const enhancedAnalysis = await this.generateHuggingFaceAnalysis(symbol, stockData, analysis);
-          return enhancedAnalysis;
-        } catch (error) {
-          console.warn('Hugging Face API failed, using rule-based analysis:', error);
+      console.log(`🤖 Using Gemini API for ${symbol} analysis`);
+      console.log(`🔑 GEMINI_API_KEY available:`, !!this.GEMINI_API_KEY);
+
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 600000 // 10 minute timeout for complex analysis
         }
+      );
+
+      console.log(`📡 Gemini response status:`, response.status);
+
+      const content = response.data.candidates[0]?.content?.parts[0]?.text;
+      console.log(`💬 Gemini content length:`, content?.length || 0);
+
+      if (!content) {
+        console.error(`❌ No content in Gemini response for ${symbol}`);
+        throw new Error('No response from Gemini');
       }
-      
-      return analysis;
+
+      console.log(`🔄 Parsing JSON response...`);
+      const result = JSON.parse(content);
+      console.log(`✅ Successfully parsed Gemini response for ${symbol}`);
+      return result;
     } catch (error) {
-      console.error('Free AI analysis error:', error);
+      console.error(`❌ Gemini API error for ${symbol}:`, error);
+      console.error('Error details:', error.response?.data || error.message);
+      // Fallback to rule-based analysis
+      console.log(`🤖 Using rule-based analysis for ${symbol}`);
       return this.getFallbackAnalysis(symbol);
     }
   }
@@ -732,7 +816,7 @@ export class AIService {
   // Generate description based on analysis
   private generateDescription(symbol: string, action: string, score: number, bullish: number, bearish: number): string {
     const actionText = action.charAt(0).toUpperCase() + action.slice(1);
-    
+
     if (action === 'buy') {
       return `${symbol} shows strong bullish signals with positive momentum and favorable technical indicators. Consider ${actionText.toLowerCase()} for potential upside.`;
     } else if (action === 'sell') {
@@ -744,229 +828,392 @@ export class AIService {
     }
   }
 
-  // Hugging Face API integration (optional enhancement)
-  private async generateHuggingFaceAnalysis(symbol: string, stockData: any, baseAnalysis: any): Promise<any> {
-    try {
-      const prompt = `Analyze stock ${symbol} with price $${stockData.price}, change ${stockData.changePercent}%. Provide trading recommendation: ${baseAnalysis.action} with confidence ${baseAnalysis.confidence}%.`;
-      
-      const response = await axios.post(
-        'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-        {
-          inputs: prompt,
-          parameters: {
-            max_length: 100,
-            temperature: 0.7
-          }
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${this.HUGGINGFACE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      // Enhance the base analysis with Hugging Face response
-      const enhancedReasoning = [...baseAnalysis.reasoning];
-      if (response.data && response.data.generated_text) {
-        enhancedReasoning.push(`AI enhancement: ${response.data.generated_text.substring(0, 100)}...`);
-      }
-      
-      return {
-        ...baseAnalysis,
-        reasoning: enhancedReasoning
-      };
-    } catch (error) {
-      throw new Error('Hugging Face API error: ' + error);
-    }
-  }
-
-  // Gemini AI analysis using the advanced 2.5 Flash Preview model
-  public async generateGeminiAnalysis(
-    symbol: string,
-    stockData: any,
-    marketData: any[],
-    indicators: TechnicalIndicator[]
-  ): Promise<any> {
+  // Gemini AI analysis with current data only
+  private async generateGeminiAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any): Promise<any> {
     const prompt = `
-Analyze the following stock data and provide a professional trading recommendation using advanced financial analysis techniques:
+You are a Professional Portfolio Advisor AI. Analyze the stock data for ${symbol} and provide confident, actionable investment recommendations. Be decisive - most stocks should receive a clear BUY, SELL, or HOLD recommendation rather than WATCH, unless truly unpredictable.
 
-Stock: ${symbol}
-Current Price: $${stockData.price}
-Change: ${stockData.change} (${stockData.changePercent}%)
-Volume: ${stockData.volume ? stockData.volume.toLocaleString() : 'N/A'}
-Market Cap: $${stockData.marketCap ? stockData.marketCap.toLocaleString() : 'N/A'}
-PE Ratio: ${stockData.pe || 'N/A'}
+Current Stock Data:
+- Symbol: ${symbol}
+- Current Price: $${stockData.price}
+- Daily Change: ${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent}%
+- 24h Volume: ${stockData.volume?.toLocaleString() || 'N/A'}
+- Market Cap: $${stockData.marketCap?.toLocaleString() || 'N/A'}
+- PE Ratio: ${stockData.pe || 'N/A'}
 
-Technical Indicators:
-${indicators.map(ind => `- ${ind.name}: ${typeof ind.value === 'number' ? ind.value.toFixed(2) : ind.value} (${ind.signal})`).join('\n')}
+${enhancedData?.fundamentalData ? `
+Company Fundamentals:
+- Sector: ${enhancedData.fundamentalData.sector || 'N/A'}
+- Industry: ${enhancedData.fundamentalData.industry || 'N/A'}
+- Beta (volatility): ${enhancedData.fundamentalData.beta || 'N/A'}
+- Net Profit Margin: ${enhancedData.fundamentalData.profitMargin || 'N/A'}%
+- Return on Equity: ${enhancedData.fundamentalData.returnOnEquity || 'N/A'}%
+` : ''}
 
-Recent Price Trend (last 10 days):
-${marketData.slice(-10).map(d => `${new Date(d.timestamp).toISOString().split('T')[0]}: $${d.close}`).join('\n')}
+${enhancedData?.newsSentiment ? `
+Market Sentiment Analysis:
+- Overall News Sentiment: ${enhancedData.newsSentiment.sentiment || 'neutral'}
+- Recent Articles: ${enhancedData.newsSentiment.newsCount || 0}
+` : ''}
 
-As a senior financial analyst, provide a comprehensive analysis with:
-1. Detailed market assessment and current position analysis
-2. Technical analysis interpretation
-3. Risk assessment and market sentiment evaluation
-4. Clear trading recommendation based on multiple factors
-5. Confidence assessment considering various market signals
+INSTRUCTIONS FOR PROFESSIONAL ANALYSIS:
+- Be confident and decisive: Most analysis should recommend CLEAR action
+- Higher confidence levels (75-95%) are normal for informed recommendations
+- Use professional investment advisory language
+- Focus on whether this is suitable for a diversified portfolio
+- Consider both growth potential AND risk management
+- Only use "watch" if the stock shows extreme uncertainty or upcoming catalysts
 
-Format your response as valid JSON only:
+Provide your comprehensive investment analysis in this exact JSON format:
 {
-  "description": "Professional analysis description highlighting key insights...",
+  "description": "2-3 sentence professional analysis explaining the investment case",
   "action": "buy|sell|hold|watch",
   "confidence": 85,
-  "reasoning": ["Key factor 1 with detailed reasoning", "Technical indicator analysis", "Risk assessment details", "Market conditions evaluation", "Recommendation rationale"]
+  "reasoning": [
+    "Technical analysis supports [bullish/bearish/neutral] momentum",
+    "Fundamental valuation indicates [attractive/fair/rich] entry point",
+    "Risk assessment: [suitable/requires caution/high risk] for portfolio allocation"
+  ]
 }
-
-Focus on actionable insights backed by the data provided.
 `;
 
     try {
-      console.log(`🤖 Sending analysis request to Gemini 2.5 Flash Preview for ${symbol}`);
-
-      const requestBody = {
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          temperature: 0.3,
-          topK: 32,
-          topP: 0.8,
-          maxOutputTokens: 2048,
-          responseMimeType: "application/json"
-        }
-      };
+      console.log(`🤖 Using Gemini API for current data analysis of ${symbol}`);
+      console.log(`🔑 GEMINI_API_KEY available:`, !!this.GEMINI_API_KEY);
 
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`,
-        requestBody,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        },
         {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 600000 // 10 minutes timeout for Gemini AI analysis
+          timeout: 60000 // 60 second timeout for complex analysis
         }
       );
 
-      if (!response.data.candidates || response.data.candidates.length === 0) {
-        throw new Error('No response candidates from Gemini API');
-      }
+      const content = response.data.candidates[0]?.content?.parts[0]?.text;
+      if (!content) throw new Error('No response from Gemini');
 
-      const content = response.data.candidates[0]?.content?.parts?.[0]?.text;
-      if (!content) {
-        throw new Error('Empty content in Gemini response');
-      }
-
-      console.log(`✅ Successfully received Gemini analysis for ${symbol}`);
+      console.log(`✅ Successfully parsed Gemini response for ${symbol}`);
       return JSON.parse(content);
-    } catch (error: any) {
-      console.error('❌ Gemini API error for analysis:', error.response?.data || error.message);
+    } catch (error) {
+      console.error(`❌ Gemini API error for ${symbol}:`, error);
+      // Fallback to rule-based analysis
+      console.log(`🤖 Using rule-based analysis for ${symbol}`);
+      return this.performRuleBasedAnalysisWithCurrentData(symbol, stockData, enhancedData);
+    }
+  }
 
-      // Fallback to rule-based analysis if Gemini fails
-      console.log(`🔄 Falling back to rule-based analysis for ${symbol}`);
-      return this.getFallbackAnalysis(symbol);
+  // Rule-based analysis with current data only - Expanded and more comprehensive
+  private performRuleBasedAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any): any {
+    let score = 0;
+    const reasoning: string[] = [];
+    const analysis: any = {
+      technical: [],
+      fundamental: [],
+      market: [],
+      sentiment: []
+    };
+
+    // === TECHNICAL ANALYSIS ===
+    // Price momentum (40% weight)
+    if (stockData.changePercent > 5) {
+      score += 32;
+      reasoning.push(`Strong bullish momentum: +${stockData.changePercent.toFixed(2)}% daily gain`);
+      analysis.technical.push('Bullish price momentum with significant daily gains');
+    } else if (stockData.changePercent > 2) {
+      score += 20;
+      reasoning.push(`Positive momentum: +${stockData.changePercent.toFixed(2)}% today`);
+      analysis.technical.push('Moderate bullish momentum');
+    } else if (stockData.changePercent < -5) {
+      score -= 32;
+      reasoning.push(`Strong bearish momentum: ${stockData.changePercent.toFixed(2)}% daily decline`);
+      analysis.technical.push('Bearish price momentum with significant daily losses');
+    } else if (stockData.changePercent < -2) {
+      score -= 20;
+      reasoning.push(`Negative momentum: ${stockData.changePercent.toFixed(2)}% today`);
+      analysis.technical.push('Moderate bearish momentum');
+    } else {
+      analysis.technical.push('Price movement within normal range');
+    }
+
+    // Volume analysis (25% weight)
+    if (stockData.volume > 5000000) {
+      score += 20;
+      reasoning.push(`Exceptionally high volume: ${this.formatVolume(stockData.volume)} shares - strong institutional interest`);
+      analysis.technical.push('Very high trading volume indicates strong market participation');
+    } else if (stockData.volume > 2000000) {
+      score += 15;
+      reasoning.push(`High trading volume: ${this.formatVolume(stockData.volume)} shares`);
+      analysis.technical.push('Above-average trading volume');
+    } else if (stockData.volume < 500000) {
+      score -= 5;
+      reasoning.push(`Low trading volume: ${this.formatVolume(stockData.volume)} shares`);
+      analysis.technical.push('Below-average trading volume may indicate lack of interest');
+    } else {
+      analysis.technical.push('Normal trading volume levels');
+    }
+
+    // === FUNDAMENTAL ANALYSIS ===
+    // PE ratio analysis (35% weight)
+    if (stockData.pe && stockData.pe > 0) {
+      if (stockData.pe < 10) {
+        score += 28;
+        reasoning.push(`Strong value opportunity: PE ratio of ${stockData.pe} suggests significant undervaluation`);
+        analysis.fundamental.push(`Exceptionally low PE ratio (${stockData.pe}) indicates potential strong value`);
+      } else if (stockData.pe < 15) {
+        score += 21;
+        reasoning.push(`Attractive valuation: PE ratio of ${stockData.pe}`);
+        analysis.fundamental.push(`Low PE ratio (${stockData.pe}) suggests good value proposition`);
+      } else if (stockData.pe > 40) {
+        score -= 28;
+        reasoning.push(`High valuation concerns: PE ratio of ${stockData.pe} may indicate overvaluation`);
+        analysis.fundamental.push(`High PE ratio (${stockData.pe}) suggests premium valuation`);
+      } else if (stockData.pe > 25) {
+        score -= 21;
+        reasoning.push(`Elevated PE ratio: ${stockData.pe} suggests cautious approach`);
+        analysis.fundamental.push(`Above-average PE ratio (${stockData.pe}) indicates growth expectations priced in`);
+      } else {
+        analysis.fundamental.push(`Moderate PE ratio (${stockData.pe}) in line with industry standards`);
+      }
+    } else {
+      analysis.fundamental.push('PE ratio not available for valuation analysis');
+    }
+
+    // === MARKET ANALYSIS ===
+    // Market cap analysis (20% weight)
+    if (stockData.marketCap > 1000000000000) { // > $1T
+      score += 16;
+      reasoning.push(`Mega-cap stability: $${this.formatMarketCap(stockData.marketCap)} market cap provides institutional-grade stability`);
+      analysis.market.push('Mega-cap company with exceptional stability and liquidity');
+    } else if (stockData.marketCap > 100000000000) { // > $100B
+      score += 12;
+      reasoning.push(`Large-cap reliability: $${this.formatMarketCap(stockData.marketCap)} market cap`);
+      analysis.market.push('Large-cap company with strong market position');
+    } else if (stockData.marketCap > 10000000000) { // > $10B
+      score += 8;
+      reasoning.push(`Mid-cap growth potential: $${this.formatMarketCap(stockData.marketCap)} market cap`);
+      analysis.market.push('Mid-cap company with balanced risk-reward profile');
+    } else if (stockData.marketCap < 1000000000) { // < $1B
+      score -= 16;
+      reasoning.push(`Micro-cap risk: $${this.formatMarketCap(stockData.marketCap)} market cap carries higher volatility`);
+      analysis.market.push('Small/micro-cap stock with higher risk and volatility');
+    } else {
+      score -= 8;
+      reasoning.push(`Small-cap concerns: $${this.formatMarketCap(stockData.marketCap)} market cap`);
+      analysis.market.push('Small-cap company with growth potential but higher risk');
+    }
+
+    // === ENHANCED DATA ANALYSIS ===
+    // Advanced fundamental analysis from Alpha Vantage/Finnhub (25% weight total)
+    if (enhancedData?.fundamentalData) {
+      const fd = enhancedData.fundamentalData;
+      let fundamentalScore = 0;
+
+      if (fd.profitMargin !== undefined) {
+        if (fd.profitMargin > 20) {
+          fundamentalScore += 6;
+          reasoning.push(`Excellent profitability: ${fd.profitMargin}% profit margin`);
+          analysis.fundamental.push(`Strong profit margin (${fd.profitMargin}%) indicates operational excellence`);
+        } else if (fd.profitMargin > 10) {
+          fundamentalScore += 4;
+          analysis.fundamental.push(`Healthy profit margin (${fd.profitMargin}%)`);
+        } else if (fd.profitMargin < 2) {
+          fundamentalScore -= 6;
+          reasoning.push(`Profitability concerns: ${fd.profitMargin}% profit margin is very low`);
+          analysis.fundamental.push(`Low profit margin (${fd.profitMargin}%) raises profitability concerns`);
+        }
+      }
+
+      if (fd.returnOnEquity !== undefined) {
+        if (fd.returnOnEquity > 20) {
+          fundamentalScore += 6;
+          reasoning.push(`Outstanding ROE: ${fd.returnOnEquity}% shows exceptional management efficiency`);
+          analysis.fundamental.push(`Excellent ROE (${fd.returnOnEquity}%) demonstrates strong management performance`);
+        } else if (fd.returnOnEquity > 12) {
+          fundamentalScore += 4;
+          analysis.fundamental.push(`Strong ROE (${fd.returnOnEquity}%)`);
+        } else if (fd.returnOnEquity < 5) {
+          fundamentalScore -= 6;
+          reasoning.push(`Weak ROE: ${fd.returnOnEquity}% indicates inefficient capital utilization`);
+          analysis.fundamental.push(`Low ROE (${fd.returnOnEquity}%) suggests capital inefficiency`);
+        }
+      }
+
+      if (fd.beta !== undefined) {
+        if (fd.beta < 0.8) {
+          fundamentalScore += 3;
+          reasoning.push(`Defensive characteristics: Low beta of ${fd.beta} indicates relative stability`);
+          analysis.market.push(`Low beta (${fd.beta}) suggests defensive qualities against market volatility`);
+        } else if (fd.beta > 1.5) {
+          fundamentalScore -= 3;
+          reasoning.push(`High volatility: Beta of ${fd.beta} indicates increased market sensitivity`);
+          analysis.market.push(`High beta (${fd.beta}) indicates above-average volatility`);
+        }
+      }
+
+      score += fundamentalScore;
+    }
+
+    // News sentiment analysis (10% weight)
+    if (enhancedData?.newsSentiment) {
+      const ns = enhancedData.newsSentiment;
+
+      if (ns.sentiment === 'positive') {
+        score += 8;
+        reasoning.push(`Positive market sentiment: ${ns.newsCount || 0} recent articles show favorable coverage`);
+        analysis.sentiment.push(`Positive news sentiment with ${ns.newsCount || 0} recent articles supporting bullish outlook`);
+      } else if (ns.sentiment === 'negative') {
+        score -= 8;
+        reasoning.push(`Negative market sentiment: ${ns.newsCount || 0} recent articles suggest caution`);
+        analysis.sentiment.push(`Negative news sentiment with ${ns.newsCount || 0} recent articles indicating bearish pressure`);
+      } else {
+        analysis.sentiment.push(`Neutral news sentiment with ${ns.newsCount || 0} articles providing balanced coverage`);
+      }
+    }
+
+    // === DETERMINE FINAL ACTION AND CONFIDENCE ===
+    // Professional portfolio advisor approach: Be confident and decisive
+    let action: 'buy' | 'sell' | 'hold' | 'watch';
+    let confidence: number;
+    let riskLevel: 'low' | 'medium' | 'high';
+
+    // Professional portfolio advisor approach: Be decisive and confident
+    if (score >= 35) {
+      if (score >= 65) {
+        action = 'buy';
+        confidence = Math.min(96, 85 + ((score - 65) * 0.15));
+        riskLevel = score > 75 ? 'low' : 'medium';
+        reasoning.unshift('BUY: Compelling fundamentals and technical alignment present clear opportunity');
+      } else {
+        action = 'buy';
+        confidence = Math.min(88, 72 + ((score - 35) * 0.25));
+        riskLevel = 'medium';
+        reasoning.unshift('BUY: Well-positioned with solid growth prospects and attractive valuation');
+      }
+    } else if (score <= -35) {
+      if (score <= -65) {
+        action = 'sell';
+        confidence = Math.min(94, 85 + (Math.abs(score + 65) * 0.15));
+        riskLevel = score < -75 ? 'low' : 'medium';
+        reasoning.unshift('SELL: Significant deterioration in fundamentals and technicals warrants position reduction');
+      } else {
+        action = 'sell';
+        confidence = Math.min(86, 72 + (Math.abs(score + 35) * 0.25));
+        riskLevel = 'medium';
+        reasoning.unshift('SELL/REDUCE: Elevated risk profile requires position adjustment');
+      }
+    } else {
+      // Most scenarios should lean toward buy/hold/sell rather than watch
+      if (Math.abs(score) < 20) {
+        action = 'hold';
+        confidence = Math.max(70, 78 + Math.abs(score) * 0.1);
+        riskLevel = score > 5 ? 'low' : score < -5 ? 'medium' : 'medium';
+        reasoning.unshift('HOLD: Current position shows balance between opportunity and risk');
+      } else if (score > 25 && score < 35) {
+        action = 'buy';
+        confidence = Math.min(85, 75 + ((score - 25) * 0.3));
+        riskLevel = 'medium';
+        reasoning.unshift('BUY: Emerging positive momentum warrants position consideration');
+      } else if (score < -25 && score > -35) {
+        action = 'sell';
+        confidence = Math.min(85, 75 + (Math.abs(score + 25) * 0.3));
+        riskLevel = 'medium';
+        reasoning.unshift('SELL: Growing concerns suggest reduced exposure appropriate');
+      } else if (Math.abs(score) <= 10) {
+        action = 'hold';
+        confidence = 75;
+        riskLevel = 'medium';
+        reasoning.unshift('HOLD: Maintain current allocation while monitoring developments');
+      } else {
+        // Reserved for truly unusual cases
+        action = 'watch';
+        confidence = Math.max(65, 78 - Math.abs(score) * 0.05);
+        riskLevel = 'medium';
+        reasoning.unshift('MONITOR: Await clearer signals before making allocation changes');
+      }
+    }
+
+    // Generate comprehensive description
+    const description = this.generateComprehensiveDescription(symbol, action, confidence, score, stockData, enhancedData, analysis, riskLevel);
+
+    return {
+      description,
+      action,
+      confidence: Math.max(30, Math.min(99, Math.round(confidence))),
+      reasoning: reasoning.length > 0 ? reasoning : ['Analysis based on available market data', 'Recommend monitoring for additional signals', 'Consider overall market conditions'],
+      analysis: analysis,
+      riskLevel: riskLevel,
+      score: Math.round(score)
+    };
+  }
+
+  // Generate description based on current data analysis
+  private generateCurrentDataDescription(symbol: string, action: string, score: number, stockData: any, enhancedData: any): string {
+    const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+
+    if (action === 'buy') {
+      let description = `${symbol} shows positive momentum with ${stockData.changePercent.toFixed(2)}% gain today and strong trading volume.`;
+
+      if (stockData.pe && stockData.pe < 20) {
+        description += ` Attractive valuation with PE ratio of ${stockData.pe}.`;
+      }
+
+      if (enhancedData?.fundamentalData?.profitMargin && enhancedData.fundamentalData.profitMargin > 10) {
+        description += ` Strong fundamentals with ${enhancedData.fundamentalData.profitMargin}% profit margin.`;
+      }
+
+      description += ` Consider ${actionText.toLowerCase()} position.`;
+      return description;
+    } else if (action === 'sell') {
+      let description = `${symbol} is showing weakness with ${stockData.changePercent.toFixed(2)}% decline today.`;
+
+      if (stockData.pe && stockData.pe > 25) {
+        description += ` Elevated PE ratio of ${stockData.pe} suggests potential overvaluation.`;
+      }
+
+      if (enhancedData?.newsSentiment?.sentiment === 'negative') {
+        description += ` Negative news sentiment adds to bearish pressure.`;
+      }
+
+      description += ` Consider ${actionText.toLowerCase()}ing position to limit losses.`;
+      return description;
+    } else if (action === 'watch') {
+      return `${symbol} shows mixed signals with current price at $${stockData.price}. ${actionText} for clearer direction before making investment decisions.`;
+    } else {
+      return `${symbol} appears stable at current levels with $${stockData.price}. ${actionText} current position while monitoring market conditions.`;
     }
   }
 
   // Fallback analysis when all AI services fail
-  public getFallbackAnalysis(symbol: string): any {
+  private getFallbackAnalysis(symbol: string): any {
     return {
-      description: `Based on technical analysis, ${symbol} shows mixed signals. Consider monitoring price action and market conditions.`,
+      description: `Based on current market data, ${symbol} shows mixed signals. Consider monitoring price action and market conditions.`,
       action: 'hold',
       confidence: 50,
       reasoning: [
         'Limited data available for comprehensive analysis',
-        'Mixed technical indicators present',
+        'Mixed signals in current market conditions',
         'Recommend further research and monitoring',
-        'Consider market volatility and external factors'
+        'Consider overall market volatility and external factors'
       ]
     };
   }
 
-  // Simple chat about stock functionality - uses Gemini with real data only
-  public async chatAboutStock(
-    symbol: string,
-    message: string,
-    context?: any,
-    userId?: string
-  ): Promise<any> {
-    console.log(`💬 AI chat about ${symbol}: "${message}"`);
-
-    try {
-      // Simple Gemini call like the working analysis endpoints
-      const prompt = `You are a financial analyst. A user has this stock data and asks: "${message}"
-
-Stock: ${symbol}
-Price: $${context?.price || 'N/A'}
-Change: ${context?.changePercent ? context.changePercent.toFixed(2) + '%' : 'N/A'}
-Market Cap: ${context?.marketCap ? (context.marketCap / 1000000000).toFixed(1) + 'B' : 'N/A'}
-P/E Ratio: ${context?.pe || 'N/A'}
-
-Previous recommendation: ${context?.action || 'HOLD'} (${context?.confidence || 'N/A'}% confidence)
-
-Provide a brief, helpful response to their question.`;
-
-      const requestBody = {
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
-        generationConfig: {
-          temperature: 0.3,
-          topK: 32,
-          topP: 0.8,
-          maxOutputTokens: 1024,
-          responseMimeType: "text/plain"
-        }
-      };
-
-      console.log(`🤖 Sending chat request to Gemini`);
-
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${this.GEMINI_API_KEY}`,
-        requestBody,
-        {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 300000 // 5 minutes
-        }
-      );
-
-      const content = response.data.candidates[0]?.content?.parts?.[0]?.text;
-      if (content) {
-        console.log(`✅ Gemini chat response successful`);
-        return {
-          response: content.trim(),
-          source: 'gemini',
-          symbol: symbol,
-          confidence: 75,
-          timestamp: new Date(),
-          riskLevel: 'medium'
-        };
-      }
-
-      // If no content, throw error to go to fallback
-      throw new Error('No Gemini response');
-
-    } catch (error: any) {
-      console.error('❌ Gemini chat failed:', error.message);
-
-      // Simple fallback
-      return {
-        response: `Based on the current data for ${symbol} (Price: $${context?.price || 'N/A'}, Change: ${context?.changePercent?.toFixed(2)}%, Prev. recommendation: ${context?.action || 'HOLD'}), please check recent financial reports for detailed information about your question.`,
-        source: 'fallback',
-        symbol: symbol,
-        confidence: 50,
-        timestamp: new Date(),
-        riskLevel: 'medium'
-      };
-    }
-  }
-
   // Generate market trend analysis
   private async generateMarketTrendAnalysis(stocksData: any[]): Promise<any> {
-    // Use free market analysis for now - can be enhanced with Gemini later
-    console.log(`📊 Using rule-based market analysis`);
-    return this.generateFreeMarketAnalysis(stocksData);
+    if (this.GEMINI_API_KEY) {
+      return this.generateGeminiMarketAnalysis(stocksData);
+    } else {
+      return this.generateFreeMarketAnalysis(stocksData);
+    }
   }
 
   // Free market analysis using rule-based system
@@ -1030,7 +1277,7 @@ Provide a brief, helpful response to their question.`;
         confidence: Math.max(30, Math.min(95, confidence)),
         reasoning: reasoning.length > 0 ? reasoning : ['Market analysis shows mixed signals', 'Recommend monitoring key indicators', 'Consider overall market conditions']
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Free market analysis error:', error);
       return this.getFallbackMarketAnalysis();
     }
@@ -1047,9 +1294,9 @@ Provide a brief, helpful response to their question.`;
     }
   }
 
-  // OpenAI market analysis (if API key is available)
-  private async generateOpenAIMarketAnalysis(stocksData: any[]): Promise<any> {
-    const marketSummary = stocksData.map(stock => 
+  // Gemini market analysis (primary method)
+  private async generateGeminiMarketAnalysis(stocksData: any[]): Promise<any> {
+    const marketSummary = stocksData.map(stock =>
       `${stock.symbol}: $${stock.price} (${stock.changePercent}%)`
     ).join('\n');
 
@@ -1075,24 +1322,31 @@ Format as JSON:
 `;
 
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.7
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
+      console.log(`🤖 Using Gemini API for market analysis`);
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );
 
-      const content = response.data.choices[0]?.message?.content;
-      if (!content) throw new Error('No response from OpenAI');
+      const content = response.data.candidates[0]?.content?.parts[0]?.text;
+      if (!content) throw new Error('No response from Gemini');
 
       return JSON.parse(content);
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('Gemini API error:', error);
+      // Fallback to rule-based analysis
+      console.log(`🤖 Using rule-based market analysis`);
       return this.getFallbackMarketAnalysis();
     }
   }
@@ -1336,12 +1590,12 @@ Format as JSON:
 
   private generateOptimizationRecommendations(current: { [symbol: string]: number }, recommended: { [symbol: string]: number }): string[] {
     const recommendations = [];
-    
+
     Object.keys(recommended).forEach(symbol => {
       const currentWeight = current[symbol] || 0;
       const recommendedWeight = recommended[symbol];
       const difference = recommendedWeight - currentWeight;
-      
+
       if (Math.abs(difference) > 5) { // 5% threshold
         if (difference > 0) {
           recommendations.push(`Consider increasing ${symbol} allocation by ${difference.toFixed(1)}%`);
@@ -1350,12 +1604,269 @@ Format as JSON:
         }
       }
     });
-    
+
     if (recommendations.length === 0) {
       recommendations.push('Current allocation is well-balanced');
     }
-    
+
     return recommendations;
+  }
+
+  // Helper methods for formatting
+  private formatVolume(volume: number): string {
+    if (volume >= 1e9) {
+      return `${(volume / 1e9).toFixed(1)}B`;
+    } else if (volume >= 1e6) {
+      return `${(volume / 1e6).toFixed(1)}M`;
+    } else if (volume >= 1e3) {
+      return `${(volume / 1e3).toFixed(1)}K`;
+    } else {
+      return volume.toString();
+    }
+  }
+
+  private formatMarketCap(marketCap: number): string {
+    if (marketCap >= 1e12) {
+      return `${(marketCap / 1e12).toFixed(2)}T`;
+    } else if (marketCap >= 1e9) {
+      return `${(marketCap / 1e9).toFixed(2)}B`;
+    } else if (marketCap >= 1e6) {
+      return `${(marketCap / 1e6).toFixed(2)}M`;
+    } else if (marketCap >= 1e3) {
+      return `${(marketCap / 1e3).toFixed(2)}K`;
+    } else {
+      return marketCap.toString();
+    }
+  }
+
+  // Comprehensive description generator
+  private generateComprehensiveDescription(
+    symbol: string,
+    action: string,
+    confidence: number,
+    score: number,
+    stockData: any,
+    enhancedData: any,
+    analysis: any,
+    riskLevel: 'low' | 'medium' | 'high'
+  ): string {
+    const actionText = action.charAt(0).toUpperCase() + action.slice(1);
+    let description = '';
+
+    if (action === 'buy') {
+      description = `${symbol} demonstrates strong positive momentum with ${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent?.toFixed(2) || '0.00'}% daily performance. `;
+
+      if (analysis.technical.length > 0) {
+        description += `Technical indicators show ${analysis.technical[0].toLowerCase()}. `;
+      }
+
+      if (analysis.fundamental.length > 0) {
+        description += `${analysis.fundamental[0]} `;
+      }
+
+      if (analysis.market.length > 0) {
+        description += `${analysis.market[0]}. `;
+      }
+
+      description += `${actionText} with ${confidence}% confidence based on comprehensive analysis.`;
+
+    } else if (action === 'sell') {
+      description = `${symbol} exhibits concerning momentum with ${stockData.changePercent?.toFixed(2) || '0.00'}% daily performance. `;
+
+      if (analysis.technical.length > 0) {
+        description += `${analysis.technical[0]} signals caution. `;
+      }
+
+      if (analysis.fundamental.some((f: string) => f.toLowerCase().includes('high') || f.toLowerCase().includes('low') || f.toLowerCase().includes('concern'))) {
+        description += 'Fundamental analysis reveals valuation concerns. ';
+      }
+
+      if (analysis.market.length > 0) {
+        description += `${analysis.market[0]}. `;
+      }
+
+      description += `Consider ${actionText.toLowerCase()} to manage risk (Confidence: ${confidence}%).`;
+
+    } else if (action === 'hold') {
+      description = `${symbol} shows neutral to mixed signals at $${stockData.price?.toFixed(2) || 'N/A'}. `;
+
+      if (analysis.technical.length > 0) {
+        description += `${analysis.technical[0]}. `;
+      }
+
+      description += `Current position appears stable with no strong directional pressure. Hold and monitor for clearer signals (Confidence: ${confidence}%).`;
+
+    } else { // watch
+      description = `${symbol} displays mixed signals requiring further observation. `;
+
+      if (stockData.volume > 2000000) {
+        description += `High trading volume of ${this.formatVolume(stockData.volume)} shares indicates institutional interest. `;
+      }
+
+      if (analysis.technical.length > 0) {
+        description += `${analysis.technical[0]}. `;
+      }
+
+      description += `Continue monitoring for confirmation of trend direction (Watch closely - Confidence: ${confidence}%).`;
+    }
+
+    // Add risk level summary
+    const riskDescription = riskLevel === 'high' ? 'Higher risk' : riskLevel === 'medium' ? 'Moderate risk' : 'Conservative approach';
+    description += `\n\nRisk Assessment: ${riskDescription}`;
+
+    return description;
+  }
+
+  // AI Chat for follow-up questions about stocks
+  async chatAboutStock(symbol: string, message: string, context?: any): Promise<any> {
+    try {
+      console.log(`💬 Chat request for ${symbol}: ${message}`);
+
+      // Get current stock data for context
+      const stockData = await stockDataService.getStockData(symbol);
+
+      if (!stockData) {
+        throw new Error(`Stock data not available for ${symbol}`);
+      }
+
+      // Get enhanced data if available
+      let enhancedData = null;
+      try {
+        enhancedData = await enhancedStockDataService.instance.getEnhancedStockData(symbol);
+      } catch (error) {
+        console.warn(`Enhanced data not available for ${symbol} chat`);
+      }
+
+      // If Gemini is available and working, use it for chat
+      if (this.GEMINI_API_KEY && await this.testGeminiAPI()) {
+        console.log(`🤖 Using Gemini for chat response`);
+        return this.generateGeminiChatResponse(symbol, message, stockData, enhancedData, context);
+      } else {
+        console.log(`📊 Using rule-based chat response`);
+        return this.generateRuleBasedChatResponse(symbol, message, stockData, enhancedData, context);
+      }
+    } catch (error) {
+      console.error('Chat about stock error:', error);
+      return {
+        response: this.getChatFallbackResponse(message),
+        riskLevel: 'low',
+        confidence: 70,
+        timestamp: new Date()
+      };
+    }
+  }
+
+  // Gemini-powered chat response
+  private async generateGeminiChatResponse(
+    symbol: string,
+    message: string,
+    stockData: any,
+    enhancedData: any,
+    context?: any
+  ): Promise<any> {
+    const prompt = `
+You are a financial AI assistant helping a user with questions about ${symbol}. Provide a helpful, accurate, and concise response.
+
+Stock Data Context:
+- Current Price: $${stockData.price}
+- Daily Change: ${stockData.changePercent}%
+- Volume: ${stockData.volume}
+- Market Cap: $${this.formatMarketCap(stockData.marketCap) || 'N/A'}
+- PE Ratio: ${stockData.pe || 'N/A'}
+
+${enhancedData ? `
+Additional Data:
+- Sector: ${enhancedData.fundamentalData?.sector || 'N/A'}
+- Profit Margin: ${enhancedData.fundamentalData?.profitMargin || 'N/A'}%
+- ROE: ${enhancedData.fundamentalData?.returnOnEquity || 'N/A'}%
+` : ''}
+
+${context ? `Previous Analysis Context: ${JSON.stringify(context)}\n\n` : ''}
+
+User Question: ${message}
+
+Provide a clear, informative response focusing on the specific question. Keep responses concise but helpful.`;
+
+    try {
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 10000
+        }
+      );
+
+      const geminiResponse = response.data.candidates[0]?.content?.parts[0]?.text;
+
+      return {
+        response: geminiResponse || 'I\'m sorry, I couldn\'t generate a response to your question.',
+        source: 'gemini',
+        symbol,
+        confidence: 85,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      console.error('Gemini chat error:', error);
+      return this.generateRuleBasedChatResponse(symbol, message, stockData, enhancedData, context);
+    }
+  }
+
+  // Rule-based chat response
+  private generateRuleBasedChatResponse(
+    symbol: string,
+    message: string,
+    stockData: any,
+    enhancedData: any,
+    context?: any
+  ): any {
+    const messageLower = message.toLowerCase();
+    let response = '';
+
+    // Handle common question types
+    if (messageLower.includes('price') || messageLower.includes('current')) {
+      response = `${symbol} is currently trading at $${stockData.price?.toFixed(2)}, ` +
+        `which is a ${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent?.toFixed(2)}% ` +
+        `change from yesterday's close.`;
+    } else if (messageLower.includes('volume') || messageLower.includes('trading')) {
+      response = `${symbol} has traded ${this.formatVolume(stockData.volume) || 'N/A'} shares today, ` +
+        `indicating ${stockData.volume > 5000000 ? 'strong' : stockData.volume > 2000000 ? 'moderate' : 'limited'} market participation.`;
+    } else if (messageLower.includes('pe') || messageLower.includes('valuation')) {
+      response = `The PE ratio for ${symbol} is ${stockData.pe || 'not available'}, ` +
+        `suggesting ${stockData.pe < 15 ? 'potentially attractive valuation' : stockData.pe > 25 ? 'premium valuation' : 'fair valuation'} compared to industry averages.`;
+    } else if (messageLower.includes('market cap') || messageLower.includes('size')) {
+      const capText = this.formatMarketCap(stockData.marketCap);
+      if (stockData.marketCap > 1000000000000) response = `${symbol} is a mega-cap company with a $${capText} market capitalization.`;
+      else if (stockData.marketCap > 100000000000) response = `${symbol} is a large-cap company with a $${capText} market capitalization.`;
+      else if (stockData.marketCap > 10000000000) response = `${symbol} is a mid-cap company with a $${capText} market capitalization.`;
+      else response = `${symbol} is a small-cap company with a $${capText} market capitalization.`;
+    } else if (messageLower.includes('why') && context) {
+      // Use the reasoning from previous analysis
+      response = `Based on the recent analysis: ${context.reasoning?.[0] || 'The analysis considered multiple technical and fundamental factors.'}`;
+    } else {
+      response = `I'd be happy to help you understand more about ${symbol}. You asked: "${message}". Based on current market data, the stock is trading at $${stockData.price?.toFixed(2)} with a ${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent?.toFixed(2)}% daily change. Could you clarify what specific aspect you'd like to know more about?`;
+    }
+
+    return {
+      response,
+      source: 'rule-based',
+      symbol,
+      confidence: 75,
+      timestamp: new Date()
+    };
+  }
+
+  // Fallback chat response
+  private getChatFallbackResponse(message: string): string {
+    return `Thank you for your question about "${message}". While I don't have specific data available right now, I'd recommend checking real-time market data, company financial reports, or consulting with a financial advisor for personalized investment guidance.`;
   }
 }
 

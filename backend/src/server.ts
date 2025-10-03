@@ -6,8 +6,6 @@ dotenv.config({ path: '.env' });
 // Debug: Check if environment variables are loaded
 console.log('🔍 Server startup - GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
 console.log('🔍 Server startup - GROQ_API_KEY length:', process.env.GROQ_API_KEY?.length || 0);
-console.log('🔍 Server startup - GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
-console.log('🔍 Server startup - GEMINI_API_KEY length:', process.env.GEMINI_API_KEY?.length || 0);
 
 import express from 'express';
 import cors from 'cors';

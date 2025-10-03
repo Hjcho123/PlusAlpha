@@ -7,7 +7,6 @@ const router = Router();
 // Public AI routes (no authentication required)
 router.post('/market-analysis', aiController.generateMarketAnalysis);
 router.post('/demo/trading-signal/:symbol', aiController.generateDemoTradingSignal);
-router.post('/analyze-with-data', aiController.analyzeStockWithData);
 
 // Protected AI routes (require authentication)
 router.use(authenticate);
