@@ -51,8 +51,16 @@ function TradingViewWidget({ symbol }: TradingViewWidgetProps) {
 
       // Get theme-appropriate colors
       const isDark = currentTheme === 'dark';
-      const backgroundColor = isDark ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 1)';
-      const gridColor = 'rgba(124, 59, 237, 0.27)'; // Purple accent
+      const backgroundColor = isDark ? 'rgb(0, 0, 0)' : 'rgba(255, 255, 255, 1)';
+      const gridColor = 'rgba(255, 255, 255, 0.27)'; // Purple accent
+
+      // Candle colors: blue for up, purple for down
+      const upColor = '#00BCD4'; // Bright blue
+      const downColor = '#9C27B0'; // Purple
+      const borderUpColor = '#00BCD4';
+      const borderDownColor = '#9C27B0';
+      const wickUpColor = '#00BCD4';
+      const wickDownColor = '#9C27B0';
 
       // Create script with configuration
       const script = document.createElement("script");
@@ -77,6 +85,12 @@ function TradingViewWidget({ symbol }: TradingViewWidgetProps) {
           "timezone": "Etc/UTC",
           "backgroundColor": "${backgroundColor}",
           "gridColor": "${gridColor}",
+          "upColor": "${upColor}",
+          "downColor": "${downColor}",
+          "borderUpColor": "${borderUpColor}",
+          "borderDownColor": "${borderDownColor}",
+          "wickUpColor": "${wickUpColor}",
+          "wickDownColor": "${wickDownColor}",
           "watchlist": [],
           "withdateranges": true,
           "compareSymbols": [],

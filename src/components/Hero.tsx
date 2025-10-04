@@ -111,7 +111,7 @@ const Hero = () => {
     // Generate shooting stars occasionally (every 3-8 seconds)
     const interval = setInterval(() => {
       generateShootingStar();
-    }, 2000 + Math.random() * 5000);
+    }, 1000 + Math.random() * 1000);
 
     return () => clearInterval(interval);
   }, [animationComplete]);
@@ -192,7 +192,8 @@ const Hero = () => {
         >
           <div className="flex flex-col items-center gap-4 mb-12">
             <p className="text-xl md:text-2xl text-muted-foreground font-nanum max-w-2xl text-center leading-relaxed">
-              Professional-grade trading analytics powered by AI
+              Trading analytics supercharged with AI
+          
             </p>
 
           </div>
