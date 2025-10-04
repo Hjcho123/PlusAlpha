@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Deployment test files
+test-gemini-*.js
+test-*.js
+test.py
+gemini-*.json
+DEBUG_LOG_*.json
 
 # Editor directories and files
 .vscode/*
@@ -23,3 +36,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
