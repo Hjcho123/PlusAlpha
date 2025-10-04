@@ -35,7 +35,7 @@ I'm designing it as an alternative to Yahoo Finance
 ### Stock Information
 <img width="2940" height="2312" alt="screencapture-localhost-5173-stock-TSLA-2025-10-04-14_16_04" src="https://github.com/user-attachments/assets/283b131f-fbcc-4b6e-8288-99fcea288ea2" />
 
-###AI Insights
+### AI Insights
 <img width="731" height="507" alt="image" src="https://github.com/user-attachments/assets/7c81884d-c9de-4d3a-a777-b413a685d5cc" />
 
 
