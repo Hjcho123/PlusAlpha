@@ -1,4 +1,4 @@
-# PlusAlpha: An AI-Powered Trading Dashboard
+# PlusAlpha: An AI-Powered Stock Dashboard
 
 ## Project info
 This project is built with:
