@@ -16,27 +16,27 @@ I'm designing it as an alternative to Yahoo Finance
 ## Screenshots of Prototype Interface:
 
 ### Landing Page
-<img width="1468" height="835" alt="image" src="https://github.com/user-attachments/assets/c3635bf5-35b2-45b9-9607-94eccdcc0034" />
-
-### The web design of the project was partly inspired by vintage Apple ads like the one below:
-<img width="1600" height="1200" alt="image" src="https://github.com/user-attachments/assets/d6bd9d9c-270c-484d-9fc7-a1963937b82c" />
+<img width="1470" height="836" alt="image" src="https://github.com/user-attachments/assets/0d2c848a-7a90-4dc7-808a-f01281617121" />
 
 
 ### Links to Demos
-<img width="1470" height="810" alt="image" src="https://github.com/user-attachments/assets/df795401-5c30-47e7-b828-58ef87a18955" />
+<img width="733" height="585" alt="image" src="https://github.com/user-attachments/assets/fb44bb51-7444-4032-9967-43ce495a0f0e" />
+
 
 ### Account Creation 
-<img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/7e11ac0e-3ce2-4d43-8af0-4b740a79ea8b" />
+<img width="729" height="510" alt="image" src="https://github.com/user-attachments/assets/3ab1876c-f9d1-467c-bcc9-2253c3bb380d" />
 
 
 
-### Demo Page Sample
-<img width="1467" height="835" alt="image" src="https://github.com/user-attachments/assets/ae899036-fc78-44db-a805-c6d1f0b7d360" />
 
+### Main Dashboard
+<img width="732" height="701" alt="image" src="https://github.com/user-attachments/assets/02204af0-5938-4d6a-bc3a-89c62745c7a0" />
 
-### Dark Mode
+### Stock Information
+<img width="2940" height="2312" alt="screencapture-localhost-5173-stock-TSLA-2025-10-04-14_16_04" src="https://github.com/user-attachments/assets/283b131f-fbcc-4b6e-8288-99fcea288ea2" />
 
-<img width="1470" height="834" alt="image" src="https://github.com/user-attachments/assets/92a650f8-8ff1-4dcc-a21b-34f1d0926b18" />
+###AI Insights
+<img width="731" height="507" alt="image" src="https://github.com/user-attachments/assets/7c81884d-c9de-4d3a-a777-b413a685d5cc" />
 
 
 
