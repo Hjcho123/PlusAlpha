@@ -444,19 +444,17 @@ const Dashboard = () => {
     }
   };
 
-  const refreshAllData = async (forceRefresh: boolean = false) => {
+  const refreshAllData = async () => {
     setLoading(true);
     const startTime = Date.now();
 
     try {
-      // For now, both normal refresh and force refresh will fetch fresh data
-      // (The backend now fetches fresh data every time)
       const updatedStocks = await Promise.all(
         watchlist.map(stock => fetchRealStockData(stock.symbol))
       );
 
       const validStocks = updatedStocks.filter(stock => stock !== null) as DetailedStockData[];
-      console.log(`[REFRESH] Fetched ${validStocks.length} stocks (${forceRefresh ? 'force' : 'normal'} refresh)`);
+      console.log(`[REFRESH] Fetched ${validStocks.length} stocks (force refresh)`);
 
       // Track price changes for debugging
       const priceChanges = validStocks.map((newStock, index) => {
@@ -495,7 +493,7 @@ const Dashboard = () => {
 
       const refreshTime = Date.now() - startTime;
       toast({
-        title: `${forceRefresh ? "Force" : ""} Refreshed (${refreshTime}ms)`,
+        title: `Refreshed (${refreshTime}ms)`,
         description: `${validStocks.length} stocks updated • ${significantChanges.length} price changes`,
       });
     } catch (error) {
@@ -612,29 +610,6 @@ const Dashboard = () => {
                 </span>
               </div>
               <span className="text-muted-foreground">Last Updated: {lastUpdated.toLocaleTimeString()}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refreshAllData(false)}
-                disabled={loading}
-                className="gap-2"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refreshAllData(true)}
-                disabled={loading}
-                className="gap-2 text-blue-500 hover:text-blue-600"
-                title="Force refresh all data from sources"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Force Refresh
-              </Button>
             </div>
           </div>
         </div>
@@ -880,6 +855,20 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Refresh Controls */}
+            <div className="flex justify-center mt-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshAllData}
+                disabled={loading}
+                className="gap-2 border-blue-500/50 hover:bg-blue-500/10 hover:border-blue-500"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh Data
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Enhanced AI Insights Tab - Only basic insights based on real data */}
