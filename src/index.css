@@ -4,86 +4,126 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme - Inspired by top fintech platforms */
+    /* Professional Light Theme - Bloomberg Terminal Inspired */
+    /* Pure white background for clean, professional look */
     --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
-    
+
+    /* Deep charcoal for text - reading comfort and professionalism */
+    --foreground: 210 11% 15%;
+
+    /* Soft white cards with subtle elevation */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    
+    --card-foreground: 210 11% 15%;
+
+    /* Pure white for popovers */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    
-    /* Professional blue as primary - trustworthy, financial */
-    --primary: 221 83% 53%;
+    --popover-foreground: 210 11% 15%;
+
+    /* Royal Blue - Trustworthy financial color */
+    --primary: 217 91% 51%;
     --primary-foreground: 0 0% 100%;
-    
-    /* Sophisticated neutrals */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    
-    /* Vibrant accent for highlights */
-    --accent: 262 83% 58%;
+
+    /* Light gray for secondary elements */
+    --secondary: 210 14% 96%;
+    --secondary-foreground: 210 11% 15%;
+
+    /* Subtle gray backgrounds */
+    --muted: 210 14% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Electric Blue for accents */
+    --accent: 217 91% 51%;
     --accent-foreground: 0 0% 100%;
-    
-    /* Clear destructive state */
-    --destructive: 0 84.2% 60.2%;
+
+    /* Professional red for alerts/destructive */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
-    /* Refined borders and inputs */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    
-    /* Rounded corners for modern feel */
-    --radius: 0.75rem;
-    
-    /* Professional chart colors */
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 262 83% 58%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 84% 60%;
+
+    /* Light gray borders - minimal but present */
+    --border: 210 14% 92%;
+    --input: 210 14% 92%;
+    --ring: 217 91% 51%;
+
+    /* Sharp radius for modern financial interfaces */
+    --radius: 0.5rem;
+
+    /* Professional trading colors */
+    --chart-1: 217 91% 51%; /* Main blue */
+    --chart-2: 142 71% 45%; /* Forest green for profits */
+    --chart-3: 0 84% 60%; /* Professional red for losses */
+    --chart-4: 38 92% 50%; /* Success green */
+    --chart-5: 262 83% 58%; /* Electric purple */
+
+    /* Trading specific colors */
+    --bullish: 142 71% 45%; /* Green for gains */
+    --bearish: 0 84% 60%; /* Red for losses */
+    --neutral: 219 14% 60%; /* Gray for neutral */
+    --premium: 262 83% 58%; /* Purple for premium features */
+
+    /* Background gradients for depth */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 51%) 0%, hsl(262 83% 58%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(38 92% 50%) 100%);
+    --gradient-danger: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(0 62% 51%) 100%);
   }
 
   .dark {
-    /* Premium Dark Theme - Deep, rich blacks */
-    --background: 222.2 47.4% 3.2%;
-    --foreground: 210 40% 98%;
-    
-    --card: 222.2 47.4% 5.9%;
-    --card-foreground: 210 40% 98%;
-    
-    --popover: 222.2 47.4% 5.9%;
-    --popover-foreground: 210 40% 98%;
-    
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 221 83% 53%;
-    
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 262 83% 58%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 84% 60%;
+    /* Professional Dark Theme - Deep Trading Terminal */
+    /* Deep navy/charcoal background - Bloomberg style */
+    --background: 217 33% 6%;
+
+    /* Crisp white text on dark background */
+    --foreground: 0 0% 95%;
+
+    /* Dark navy cards for subtle elevation */
+    --card: 217 19% 12%;
+    --card-foreground: 0 0% 95%;
+
+    /* Dark popover */
+    --popover: 217 19% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Bright royal blue on dark */
+    --primary: 217 91% 60%;
+    --primary-foreground: 217 33% 6%;
+
+    /* Dark gray for secondary */
+    --secondary: 217 19% 16%;
+    --secondary-foreground: 0 0% 95%;
+
+    /* Very dark gray backgrounds */
+    --muted: 217 19% 16%;
+    --muted-foreground: 215 16% 57%;
+
+    /* Electric blue accents */
+    --accent: 262 83% 65%;
+    --accent-foreground: 217 33% 6%;
+
+    /* Bright red for alerts */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+
+    /* Subtle dark borders */
+    --border: 217 19% 18%;
+    --input: 217 19% 16%;
+    --ring: 217 91% 60%;
+
+    /* Trading colors optimized for dark theme */
+    --chart-1: 217 91% 60%; /* Brighter blue */
+    --chart-2: 142 71% 55%; /* Brighter green */
+    --chart-3: 0 84% 65%; /* Brighter red */
+    --chart-4: 38 92% 60%; /* Brighter success green */
+    --chart-5: 262 83% 65%; /* Brighter purple */
+
+    /* Dark theme trading colors */
+    --bullish: 142 71% 55%; /* Bright green gains */
+    --bearish: 0 84% 65%; /* Bright red losses */
+    --neutral: 219 14% 40%; /* Dark gray neutral */
+    --premium: 262 83% 65%; /* Bright purple premium */
+
+    /* Dark gradients for depth */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(262 83% 65%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 55%) 0%, hsl(38 92% 60%) 100%);
+    --gradient-danger: linear-gradient(135deg, hsl(0 84% 65%) 0%, hsl(0 62% 55%) 100%);
   }
 }
 
@@ -185,17 +225,131 @@
   
   /* Premium gradient backgrounds */
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    background: var(--gradient-primary);
   }
-  
+
   .gradient-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--gradient-success);
   }
-  
+
   .gradient-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: var(--gradient-danger);
   }
-  
+
+  /* Professional Trading Platform Classes */
+  .trading-card {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .trading-card:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .bullish-text {
+    @apply text-[hsl(var(--bullish))];
+  }
+
+  .bearish-text {
+    @apply text-[hsl(var(--bearish))];
+  }
+
+  .neutral-text {
+    @apply text-[hsl(var(--neutral))];
+  }
+
+  .premium-text {
+    @apply text-[hsl(var(--premium))];
+  }
+
+  .bullish-bg {
+    background-color: hsl(var(--bullish) / 0.1);
+    @apply border-l-4 border-[hsl(var(--bullish))];
+  }
+
+  .bearish-bg {
+    background-color: hsl(var(--bearish) / 0.1);
+    @apply border-l-4 border-[hsl(var(--bearish))];
+  }
+
+  .terminal-panel {
+    @apply bg-card border border-border rounded-lg;
+    box-shadow: inset 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  }
+
+  .market-data-row {
+    @apply border-b border-border hover:bg-muted/30 transition-colors;
+  }
+
+  .market-status-active {
+    @apply bg-[hsl(var(--bullish))/0.1] border border-[hsl(var(--bullish))/0.3];
+  }
+
+  .market-status-closed {
+    @apply bg-[hsl(var(--neutral))/0.1] border border-[hsl(var(--neutral))/0.3];
+  }
+
+  .price-gain {
+    @apply text-[hsl(var(--bullish))] font-semibold;
+  }
+
+  .price-loss {
+    @apply text-[hsl(var(--bearish))] font-semibold;
+  }
+
+  .data-table-header {
+    @apply bg-muted/50 border-b-2 border-border font-semibold text-foreground;
+  }
+
+  .trading-button-primary {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-semibold;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .trading-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .trading-button-secondary {
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground border border-border;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .trading-button-secondary:hover {
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  .stock-symbol {
+    @apply font-mono font-bold text-lg text-foreground;
+  }
+
+  .stock-name {
+    @apply text-muted-foreground font-medium;
+  }
+
+  .metric-label {
+    @apply text-muted-foreground text-sm font-medium;
+  }
+
+  .metric-value {
+    @apply font-semibold text-foreground;
+  }
+
+  /* Enhanced card variants */
+  .card-financial {
+    @apply trading-card;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 100%);
+  }
+
+  .card-financial:hover {
+    background: linear-gradient(135deg, hsl(var(--muted)/0.3) 0%, hsl(var(--card)) 100%);
+  }
+
   /* Premium focus states */
   .focus-ring {
     @apply outline-none;

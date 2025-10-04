@@ -30,40 +30,73 @@ const Products = () => {
   ];
 
   return (
-    <section id="products" className="py-24 bg-background/95 backdrop-blur-sm border-y border-border/20">
+    <section id="products" className="py-24 bg-background border-y border-border/50">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold font-nanum text-foreground mb-4">
-            Our Product
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-6xl font-bold font-nanum text-foreground mb-6">
+            Trading Platform
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Cutting-edge AI technology designed to give you the edge in trading
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Professional-grade tools designed to transform how you analyze and trade financial markets
           </p>
+          <div className="mt-8 flex justify-center">
+            <div className="px-6 py-2 bg-primary/10 rounded-full border border-primary/20">
+              <span className="text-primary font-semibold">Powered by Advanced AI</span>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {products.map((product, index) => (
             <a
               href={product.link}
               key={index}
-              className="block no-underline"
+              className="block no-underline group"
             >
               <Card
-                className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 animate-slide-up bg-card/95 backdrop-blur-sm border-border cursor-pointer"
+                className="terminal-panel hover:shadow-xl transition-all duration-500 hover:transform hover:scale-[1.02] cursor-pointer border-l-4 border-l-primary/0 hover:border-l-primary"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <CardHeader>
-                  <div className="mb-4">{product.icon}</div>
-                  <CardTitle className="text-2xl font-nanum">{product.title}</CardTitle>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                      {product.icon}
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-bold font-nanum text-foreground group-hover:text-primary transition-colors">
+                        {product.title}
+                      </CardTitle>
+                      <div className="mt-1 h-0.5 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:from-primary to-primary transition-all duration-300"></div>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-base text-muted-foreground leading-relaxed">
                     {product.description}
                   </CardDescription>
+                  <div className="mt-6 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-primary font-medium">
+                      <span className="text-sm">Explore Feature</span>
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <div className="px-3 py-1 bg-primary/10 rounded-full">
+                      <span className="text-xs font-mono text-primary">AI Enhanced</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </a>
           ))}
+        </div>
+
+        {/* Footer Call-to-Action */}
+        <div className="text-center mt-16">
+          <div className="inline-flex items-center gap-3 px-8 py-4 bg-card border border-border rounded-lg shadow-sm">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="text-foreground font-medium">Trusted by traders worldwide</span>
+          </div>
         </div>
       </div>
     </section>

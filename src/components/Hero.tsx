@@ -176,7 +176,7 @@ const Hero = () => {
           />
           {/* Plus symbol that fades in after glitch - blue to purple gradient */}
           <span className={`
-            absolute -top-2 -right-10 text-4xl md:text-7xl font-medium z-10
+            absolute right-36 top-0 transform -translate-x-0 -translate-y-3 text-4xl md:text-7xl font-medium z-10
             bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent
             transition-opacity duration-500
             ${showPlus ? 'opacity-100' : 'opacity-0'}
@@ -185,30 +185,44 @@ const Hero = () => {
           </span>
         </h1>
         
-        <div 
+        <div
           className={`transition-opacity duration-1000 ${
             animationComplete ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <p className="text-xl md:text-2xl text-muted-foreground font-nanum mb-12">
-            Making trading accessible with AI<br />
-            <span className="text-sm md:text-base">a project by Heejae Cho</span>
-          </p>
+          <div className="flex flex-col items-center gap-4 mb-12">
+            <p className="text-xl md:text-2xl text-muted-foreground font-nanum max-w-2xl text-center leading-relaxed">
+              Professional-grade trading analytics powered by AI
+            </p>
 
-          <div className="grid grid-cols-3 gap-8 max-w-4xl mx-auto mt-16">
-            <div className="text-center">
-              <BotMessageSquare className="w-8 h-8 mx-auto mb-2 text-accent" />
-              <p className="text-sm">AI-Powered Insights</p>
+          </div>
+
+          {/* Professional Feature Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-16">
+            <div className="text-center group">
+              <div className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 group-hover:bg-primary/5">
+                <BotMessageSquare className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-semibold text-foreground mb-2">AI Analysis</h3>
+                <p className="text-sm text-muted-foreground">Advanced machine learning algorithms for market insights</p>
+              </div>
             </div>
-            <div className="text-center">
-              <Blocks className="w-8 h-8 mx-auto mb-2 text-accent" />
-              <p className="text-sm">Entry-Level</p>
+            <div className="text-center group">
+              <div className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 group-hover:bg-primary/5">
+                <Blocks className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-semibold text-foreground mb-2">Real-time Data</h3>
+                <p className="text-sm text-muted-foreground">Live market data feeds with professional-grade accuracy</p>
+              </div>
             </div>
-            <div className="text-center">
-              <ChartCandlestick className="w-8 h-8 mx-auto mb-2 text-accent" />
-              <p className="text-sm">Real-time Analytics</p>
+            <div className="text-center group">
+              <div className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50 group-hover:bg-primary/5">
+                <ChartCandlestick className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-semibold text-foreground mb-2">Trading Tools</h3>
+                <p className="text-sm text-muted-foreground">Comprehensive analysis tools for modern traders</p>
+              </div>
             </div>
           </div>
+
+
         </div>
       </div>
 

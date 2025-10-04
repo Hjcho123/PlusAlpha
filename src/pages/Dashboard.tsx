@@ -594,22 +594,38 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
 
-      {/* Market Status Bar */}
-      <div className="bg-card border-b border-border py-2">
+      {/* Professional Market Status Bar */}
+      <div className="terminal-panel py-3 border-b border-border">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center text-sm">
             <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                marketStatus === 'open'
+                  ? 'market-status-active'
+                  : 'market-status-closed'
+              }`}>
                 <div className={`w-2 h-2 rounded-full ${
                   marketStatus === 'open' ? 'bg-green-500 animate-pulse' :
-                  marketStatus === 'after-hours' ? 'bg-yellow-500' : 'bg-red-500'
+                  marketStatus === 'after-hours' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
                 }`} />
                 <span className="font-medium text-foreground">
                   {marketStatus === 'open' ? 'Market Open' :
                    marketStatus === 'after-hours' ? 'After Hours' : 'Market Closed'}
                 </span>
               </div>
-              <span className="text-muted-foreground">Last Updated: {lastUpdated.toLocaleTimeString()}</span>
+              <span className="text-muted-foreground font-mono">
+                Last Updated: {lastUpdated.toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                <span>Live Data</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-accent"></div>
+                <span>AI Powered</span>
+              </div>
             </div>
           </div>
         </div>
@@ -690,21 +706,25 @@ const Dashboard = () => {
           <TabsContent value="watchlist" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {watchlist.map((stock) => (
-                <Card 
-                  key={stock.symbol} 
-                  className="bg-card border-border hover:border-blue-500/50 transition-all duration-200 cursor-pointer"
+                <Card
+                  key={stock.symbol}
+                  className={`card-financial cursor-pointer ${stock.changePercent >= 0 ? 'bullish-bg' : 'bearish-bg'}`}
                   onClick={() => window.location.href = `/stock/${stock.symbol}`}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <CardTitle className="text-lg font-mono text-foreground">{stock.symbol}</CardTitle>
-                        <CardDescription className="text-muted-foreground text-sm">{stock.name}</CardDescription>
+                        <div className="stock-symbol">{stock.symbol}</div>
+                        <div className="stock-name text-sm">{stock.name}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge
-                          variant={stock.changePercent >= 0 ? 'default' : 'destructive'}
-                          className={`font-mono ${stock.changePercent >= 0 ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
+                          variant="outline"
+                          className={`font-mono text-sm ${
+                            stock.changePercent >= 0
+                              ? 'bullish-text border-[#22c55e]/30 bg-[#22c55e]/10'
+                              : 'bearish-text border-[#ef4444]/30 bg-[#ef4444]/10'
+                          }`}
                         >
                           {stock.changePercent >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
                           {formatPercentage(stock.changePercent)}
@@ -716,7 +736,7 @@ const Dashboard = () => {
                             e.stopPropagation();
                             removeFromWatchlist(stock.symbol);
                           }}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:bearish-text hover:bg-destructive/10"
                           title="Remove from watchlist"
                         >
                           <X className="w-4 h-4" />
@@ -725,54 +745,53 @@ const Dashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-2xl font-bold font-mono">{formatCurrency(stock.price)}</div>
-
-                      {/* Refresh Counter */}
-                      <div className="flex justify-center">
-                        <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded-md">
-                          <span className="text-sm font-mono text-blue-600">
-                            Refreshes: {refreshCounters[stock.symbol] || 0}
-                          </span>
+                    <div className="space-y-4">
+                      {/* Price Display */}
+                      <div className="text-center py-2">
+                        <div className="text-3xl font-bold font-mono text-foreground">
+                          {formatCurrency(stock.price)}
                         </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground">Volume</div>
-                          <div className="font-medium text-foreground">
-                            {formatVolume(stock.volume)}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground">P/E Ratio</div>
-                          <div className="font-medium text-foreground">
-                            {formatNumber(stock.pe, 1)}
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground">Market Cap</div>
-                          <div className="font-medium text-foreground">{formatMarketCap(stock.marketCap)}</div>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="text-muted-foreground">Sector</div>
-                          <div className="font-medium text-foreground">{stock.sector || 'N/A'}</div>
+                        <div className={`text-sm font-semibold ${
+                          stock.change >= 0 ? 'bullish-text' : 'bearish-text'
+                        }`}>
+                          {stock.change >= 0 ? '+' : ''}{formatCurrency(stock.change)}
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                      {/* Market Metrics Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <div className="metric-label">Volume</div>
+                          <div className="metric-value text-sm">{formatVolume(stock.volume)}</div>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <div className="metric-label">P/E Ratio</div>
+                          <div className="metric-value text-sm">{formatNumber(stock.pe, 1)}</div>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <div className="metric-label">Market Cap</div>
+                          <div className="metric-value text-sm truncate">{formatMarketCap(stock.marketCap)}</div>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <div className="metric-label">Sector</div>
+                          <div className="metric-value text-sm">{stock.sector || 'N/A'}</div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedStocks(prev => 
-                              prev.includes(stock.symbol) 
+                            setSelectedStocks(prev =>
+                              prev.includes(stock.symbol)
                                 ? prev.filter(s => s !== stock.symbol)
                                 : [...prev, stock.symbol]
                             );
                           }}
-                          className="flex-1 border-blue-500/50 hover:bg-blue-500/10 hover:border-blue-500"
+                          className="trading-button-secondary flex-1"
                         >
                           {selectedStocks.includes(stock.symbol) ? 'Deselect' : 'Compare'}
                         </Button>
@@ -782,11 +801,20 @@ const Dashboard = () => {
                             e.stopPropagation();
                             generateInsight(stock.symbol);
                           }}
-                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          className="trading-button-primary flex-1"
                         >
                           <Brain className="w-3 h-3 mr-1" />
                           Analyze
                         </Button>
+                      </div>
+
+                      {/* Refresh Counter Badge */}
+                      <div className="flex justify-center">
+                        <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
+                          <span className="text-xs font-mono text-primary font-medium">
+                            Refreshes: {refreshCounters[stock.symbol] || 0}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -817,14 +845,14 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left p-3 text-muted-foreground">Metric</th>
+                    <table className="w-full">
+                      <thead className="data-table-header">
+                        <tr>
+                          <th className="text-left p-4 text-muted-foreground font-semibold">Metric</th>
                           {watchlist
                             .filter(stock => selectedStocks.includes(stock.symbol))
                             .map(stock => (
-                              <th key={stock.symbol} className="text-right p-3 text-foreground font-mono">
+                              <th key={stock.symbol} className="text-center p-4 text-foreground font-mono font-bold">
                                 {stock.symbol}
                               </th>
                             ))}
@@ -837,13 +865,17 @@ const Dashboard = () => {
                           { label: 'Volume', key: 'volume', formatter: formatVolume },
                           { label: 'P/E Ratio', key: 'pe', formatter: (v: number | undefined | null) => formatNumber(v, 1) },
                           { label: 'Market Cap', key: 'marketCap', formatter: formatMarketCap }
-                        ].map((metric) => (
-                          <tr key={metric.label} className="border-b border-border hover:bg-muted/50">
-                            <td className="p-3 text-muted-foreground">{metric.label}</td>
+                        ].map((metric, index) => (
+                          <tr key={metric.label} className={`market-data-row ${index % 2 === 0 ? 'bg-muted/20' : ''}`}>
+                            <td className="p-4 font-medium text-foreground">{metric.label}</td>
                             {watchlist
                               .filter(stock => selectedStocks.includes(stock.symbol))
                               .map(stock => (
-                                <td key={`${stock.symbol}-${metric.key}`} className="p-3 text-right font-mono">
+                                <td key={`${stock.symbol}-${metric.key}`} className={`p-4 text-center font-mono ${
+                                  metric.key === 'changePercent'
+                                    ? stock.changePercent >= 0 ? 'price-gain' : 'price-loss'
+                                    : 'text-foreground'
+                                }`}>
                                   {metric.formatter((stock as any)[metric.key])}
                                 </td>
                               ))}
