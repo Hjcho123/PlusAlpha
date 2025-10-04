@@ -668,6 +668,8 @@ const Dashboard = () => {
           </div>
         </div>
 
+
+
         {/* TradingView Ticker Tape */}
         <div className="mb-5 bg-black border border-blue-600 rounded-lg overflow-hidden" style={{minHeight: '40px'}}>
           <TickerTapeWidget />

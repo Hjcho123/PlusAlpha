@@ -243,7 +243,9 @@ const StockDetail: React.FC = () => {
 
           {/* Chart Tab */}
           <TabsContent value="chart">
-            <TradingViewWidget symbol={stockData.symbol} />
+            <div style={{ height: "600px", width: "100%" }}>
+              <TradingViewWidget symbol={stockData.symbol} />
+            </div>
           </TabsContent>
 
           {/* Fundamentals Tab - Only show available data */}
