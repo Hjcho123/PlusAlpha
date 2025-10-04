@@ -1,3 +1,5 @@
+<img width="941" height="265" alt="Screenshot_2025-10-02_at_2 05 07_AM-removebg-preview" src="https://github.com/user-attachments/assets/3038a542-e57e-4d85-9f8f-875fddbef247" />
+
 # PlusAlpha: An AI-Powered Stock Dashboard
 
 ## Project info
