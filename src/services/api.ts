@@ -1,14 +1,8 @@
 // PlusAlpha API Service
 // This file provides easy-to-use functions to connect your frontend to the backend
 
-// Automatically detect production environment
-const API_BASE_URL = import.meta.env.DEV
-  ? 'http://localhost:3001/api'
-  : '/api'; // Relative URL in production (same domain)
-
-const WS_URL = import.meta.env.DEV
-  ? 'ws://localhost:3001/ws'
-  : `wss://${window.location.host}/ws`; // Same domain WebSocket in production
+const API_BASE_URL = 'http://localhost:3001/api';
+const WS_URL = 'ws://localhost:3001/ws';
 
 // Types for API responses
 export interface ApiResponse<T = any> {
