@@ -46,10 +46,17 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      // Allow TradingView iframe embedding
+      frameSrc: ["'self'", "https://www.tradingview-widget.com", "https://s.tradingview.com"],
+      // Allow inline styles and TradingView scripts
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://s3.tradingview.com", "https://www.tradingview-widget.com", "https://data.tradingview.com"],
+      // Allow images from TradingView and data URIs
       imgSrc: ["'self'", "data:", "https:", "https://s3.tradingview.com"],
-      connectSrc: ["'self'", "https://data.tradingview.com", "https://www.tradingview-widget.com", "https://s3.tradingview.com"],
+      // Allow Google Fonts
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      // Allow API calls to TradingView and self
+      connectSrc: ["'self'", "https://data.tradingview.com", "https://www.tradingview-widget.com", "https://s3.tradingview.com", "wss://data.tradingview.com"],
     },
   },
 }));
