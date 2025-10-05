@@ -716,8 +716,7 @@ const Dashboard = () => {
               {watchlist.map((stock) => (
                 <Card
                   key={stock.symbol}
-                  className={`card-financial cursor-pointer ${stock.changePercent >= 0 ? 'bullish-bg' : 'bearish-bg'}`}
-                  onClick={() => window.location.href = `/stock/${stock.symbol}`}
+                  className={`card-financial ${stock.changePercent >= 0 ? 'bullish-bg' : 'bearish-bg'}`}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -975,6 +974,28 @@ const Dashboard = () => {
 
                       {/* Chat Interface */}
                       <div className="border-t border-border pt-4">
+                        {/* Prominent Chat Prompt */}
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg p-4 mb-4 border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <Brain className="w-5 h-5 text-white" />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                                🤖 Want to know more?
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                Ask me anything about {insight.symbol} - I can explain trends, market conditions, and more!
+                              </p>
+                            </div>
+                            <div className="flex-shrink-0 animate-bounce">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex items-center gap-2 mb-3">
                           <Lightbulb className="w-4 h-4 text-blue-500" />
                           <h4 className="text-sm font-medium text-foreground">Ask questions about {insight.symbol}</h4>
