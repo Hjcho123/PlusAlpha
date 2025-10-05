@@ -1,7 +1,3 @@
-[build]
-builder = "heroku/buildpacks:20"
-
 [deploy]
 startCommand = "cd backend && npm start"
 healthcheckUrl = "/health"
-healthcheckTimeout = 300
