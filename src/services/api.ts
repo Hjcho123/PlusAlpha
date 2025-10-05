@@ -1,8 +1,13 @@
 // PlusAlpha API Service
 // This file provides easy-to-use functions to connect your frontend to the backend
 
-const API_BASE_URL = 'http://localhost:3001/api';
-const WS_URL = 'ws://localhost:3001/ws';
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://plusalpha-production.up.railway.app/api'
+  : 'http://localhost:3001/api';
+
+const WS_URL = process.env.NODE_ENV === 'production'
+  ? 'wss://plusalpha-production.up.railway.app/ws'
+  : 'ws://localhost:3001/ws';
 
 // Types for API responses
 export interface ApiResponse<T = any> {
