@@ -31,7 +31,7 @@ const DesktopOnly = () => {
       <div className="text-center max-w-md">
         <div className="text-6xl mb-4">💻</div>
         <h2 className="text-2xl font-bold font-nanum text-foreground mb-4">
-          You'll Need a Better Screen...
+          You'll Need a Bigger Screen...
         </h2>
         <p className="text-muted-foreground mb-6">
           PlusAlpha requires a proper desktop or tablet screen for optimal viewing.
