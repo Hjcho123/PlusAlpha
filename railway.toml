@@ -1,0 +1,14 @@
+[build]
+builder = "buildpacks"
+
+[build.buildpacks]
+  - "https://github.com/MakeSchool/heroku-buildpack-nodejs.git"
+
+[deploy]
+startCommand = "cd backend && npm start"
+healthcheckUrl = "/api/health"
+healthcheckTimeout = 300
+
+[env]
+NODE_ENV = "production"
+PORT = "3001"
