@@ -11,8 +11,8 @@ const DesktopOnly = () => {
       setScreenSize({ width, height });
 
       // Check both width and height for proper desktop/tablet experience
-      // Minimum: 768px width, 600px height (adequate for most UI elements)
-      const isValid = width >= 768 && height >= 600;
+      // Minimum: 768px width, 768px height (proper laptop/tablet screen dimensions)
+      const isValid = width >= 768 && height >= 768;
       setIsValidScreen(isValid);
     };
 
@@ -42,7 +42,7 @@ const DesktopOnly = () => {
           <div className="space-y-1">
             <p>Minimum requirements:</p>
             <p>• Width: 768px</p>
-            <p>• Height: 600px</p>
+            <p>• Height: 768px</p>
           </div>
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-xs">Supported: Desktop, Laptop, iPad (landscape)</p>

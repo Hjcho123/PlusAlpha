@@ -2,91 +2,52 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Gem, TrendingUp, BarChart3, Clock, Target, Zap, CheckCircle, Activity } from "lucide-react";
+import { Clock, Target, CheckCircle, Activity } from "lucide-react";
 
 const PredictiveAnalytics = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       {/* Hero Section */}
       <div className="container mx-auto py-24 px-6 animate-fade-in">
         <div className="text-center mb-16">
           <Badge className="mb-4" variant="secondary">
-            <Gem className="w-4 h-4 mr-2" />
-            Future Market Intelligence
+            <Clock className="w-4 h-4 mr-2" />
+            Historical Price Data
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold font-nanum text-foreground mb-6">
-          Predictive Analytics
+          Stock Charts & History
         </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Leverage cutting-edge AI to forecast market trends with unprecedented accuracy. 
-            Make data-driven decisions based on predictive models that see beyond current market conditions.
+            View detailed stock price charts and historical data. See how prices have moved over time
+            and get basic technical information about stock performance trends.
           </p>
-          <Button size="lg" className="gap-2">
-            <Gem className="w-5 h-5" />
-            Explore Predictions
-          </Button>
         </div>
 
-        {/* Prediction Capabilities */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        {/* Chart Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card>
             <CardHeader>
-              <TrendingUp className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Price Forecasting</CardTitle>
+              <Clock className="w-8 h-8 text-primary mb-2" />
+              <CardTitle>Price Charts</CardTitle>
               <CardDescription>
-                Predict future price movements with 85% accuracy using advanced time series analysis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Short-term (1-7 days)</span>
-                  <span className="font-semibold">92%</span>
-                </div>
-                <Progress value={92} className="h-2" />
-                <div className="flex justify-between text-sm">
-                  <span>Medium-term (1-4 weeks)</span>
-                  <span className="font-semibold">85%</span>
-                </div>
-                <Progress value={85} className="h-2" />
-                <div className="flex justify-between text-sm">
-                  <span>Long-term (1-6 months)</span>
-                  <span className="font-semibold">78%</span>
-                </div>
-                <Progress value={78} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <BarChart3 className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Volatility Analysis</CardTitle>
-              <CardDescription>
-                Forecast market volatility to optimize entry and exit timing
+                Interactive candlestick and line charts showing price movements over time
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  VIX prediction models
+                  1-day, 1-week, 1-month views
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Sector volatility forecasts
+                  Volume bars
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Event-driven volatility
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Options pricing insights
+                  Moving averages
                 </li>
               </ul>
             </CardContent>
@@ -95,77 +56,84 @@ const PredictiveAnalytics = () => {
           <Card>
             <CardHeader>
               <Activity className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Market Sentiment</CardTitle>
+              <CardTitle>Historical Data</CardTitle>
               <CardDescription>
-                Analyze and predict market sentiment shifts before they happen
+                Access years of historical stock data and trading information
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Social media analysis
+                  Price history (5+ years)
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  News sentiment tracking
+                  High/low prices
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Institutional flow prediction
+                  Trading volume trends
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Target className="w-8 h-8 text-primary mb-2" />
+              <CardTitle>Key Levels</CardTitle>
+              <CardDescription>
+                Important price levels and basic technical indicators
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-2">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  52-week high/low
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Fear & greed indicators
+                  Recent support/resistance
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  Basic trend lines
                 </li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
-        {/* Live Predictions Dashboard */}
-        <Card className="mb-16">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-nanum">Live Market Predictions</CardTitle>
-            <CardDescription>
-              Real-time forecasts updated every minute
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-green-600 mb-2">↗ Bullish</div>
-                <div className="text-sm text-muted-foreground mb-2">S&P 500 - Next 5 Days</div>
-                <div className="text-xs">Confidence: 87%</div>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600 mb-2">→ Neutral</div>
-                <div className="text-sm text-muted-foreground mb-2">NASDAQ - Next Week</div>
-                <div className="text-xs">Confidence: 72%</div>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-red-600 mb-2">↘ Bearish</div>
-                <div className="text-sm text-muted-foreground mb-2">Russell 2000 - Next Month</div>
-                <div className="text-xs">Confidence: 79%</div>
-              </div>
+        {/* Chart Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-primary" />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* CTA Section */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold font-nanum mb-4">See the Future of Markets</h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Don't just react to market movements—anticipate them. Start using predictive analytics to stay ahead of the curve.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2">
-              <Gem className="w-5 h-5" />
-              Start Predicting
-            </Button>
-            <Button size="lg" variant="outline">
-              View Predictions
-            </Button>
+            <h3 className="font-semibold mb-2">Price History</h3>
+            <p className="text-sm text-muted-foreground">
+              Access historical price data and trading volume over extended periods.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Activity className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">Interactive Charts</h3>
+            <p className="text-sm text-muted-foreground">
+              Navigate through different time frames and chart types for detailed analysis.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Target className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">Technical Analysis</h3>
+            <p className="text-sm text-muted-foreground">
+              View basic technical indicators and chart patterns for market analysis.
+            </p>
           </div>
         </div>
       </div>

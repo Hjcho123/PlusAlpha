@@ -787,7 +787,7 @@ const Dashboard = () => {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex justify-center gap-2 pt-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -822,7 +822,7 @@ const Dashboard = () => {
                       </div>
 
                       {/* View Stock Chart Button */}
-                      <div className="flex justify-center pt-2">
+                      <div className="flex justify-center pt-3">
                         <Button
                           size="sm"
                           variant="outline"

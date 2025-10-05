@@ -9,50 +9,46 @@ const AITrading = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       {/* Hero Section */}
       <div className="container mx-auto py-24 px-6 animate-fade-in">
         <div className="text-center mb-16">
           <Badge className="mb-4" variant="secondary">
             <Brain className="w-4 h-4 mr-2" />
-            AI-Powered Trading
+            AI Stock Analysis
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold font-nanum text-foreground mb-6">
-            AI Trading Assistant
+            Stock Analysis
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Harness the power of advanced machine learning algorithms to analyze market patterns, 
-            identify opportunities, and execute trades with unprecedented precision and speed.
+            Get actionable trading insights based on stock price movements and market data.
+            Use AI-powered analysis to make informed investment decisions.
           </p>
-          <Button size="lg" className="gap-2">
-            <Zap className="w-5 h-5" />
-            Start Trading with AI
-          </Button>
         </div>
 
-        {/* Key Features Grid */}
+        {/* Key Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <Card>
             <CardHeader>
               <TrendingUp className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Real-time Analysis</CardTitle>
+              <CardTitle>Price Analysis</CardTitle>
               <CardDescription>
-                Process thousands of market indicators simultaneously for instant insights
+                Analyze recent stock price movements and trading volume patterns
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Live market data processing
+                  Price trend identification
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Multi-timeframe analysis
+                  Volume analysis
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Sentiment analysis integration
+                  Support and resistance levels
                 </li>
               </ul>
             </CardContent>
@@ -61,24 +57,24 @@ const AITrading = () => {
           <Card>
             <CardHeader>
               <Brain className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Machine Learning</CardTitle>
+              <CardTitle>AI Insights</CardTitle>
               <CardDescription>
-                Advanced neural networks trained on decades of market data
+                Machine learning-powered interpretation of market data patterns
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Pattern recognition algorithms
+                  Momentum indicators
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Adaptive learning models
+                  Trend analysis
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Continuous model improvement
+                  Trading suggestions
                 </li>
               </ul>
             </CardContent>
@@ -87,41 +83,41 @@ const AITrading = () => {
           <Card>
             <CardHeader>
               <Target className="w-8 h-8 text-primary mb-2" />
-              <CardTitle>Smart Signals</CardTitle>
+              <CardTitle>Trading Signals</CardTitle>
               <CardDescription>
-                Precise buy/sell recommendations with confidence scoring
+              Clear recommendations with confidence scoring for decision making
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Entry and exit points
+                  Buy/Hold/Sell ratings
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Risk-reward ratios
+                  Confidence indicators
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
-                  Stop-loss recommendations
+                  Key price levels
                 </li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
-        {/* How It Works Section */}
+        {/* How It Works */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold font-nanum text-center mb-12">How AI Trading Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <h2 className="text-3xl font-bold font-nanum text-center mb-12">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <BarChart3 className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Data Collection</h3>
+              <h3 className="font-semibold mb-2">Market Data</h3>
               <p className="text-sm text-muted-foreground">
-                Gather real-time market data, news, and social sentiment from multiple sources
+                Access current stock prices, volume, and market information
               </p>
             </div>
             <div className="text-center">
@@ -130,74 +126,18 @@ const AITrading = () => {
               </div>
               <h3 className="font-semibold mb-2">AI Analysis</h3>
               <p className="text-sm text-muted-foreground">
-                Process data through advanced neural networks to identify patterns and trends
+                Machine learning algorithms process data and identify patterns
               </p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">Signal Generation</h3>
+              <h3 className="font-semibold mb-2">Trading Signals</h3>
               <p className="text-sm text-muted-foreground">
-                Generate precise trading signals with confidence scores and risk assessments
+                Receive buy/sell/hold recommendations based on analysis
               </p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Execution</h3>
-              <p className="text-sm text-muted-foreground">
-                Receive instant notifications and execute trades with optimal timing
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Stats */}
-        <Card className="mb-16">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-nanum">Proven Performance</CardTitle>
-            <CardDescription>
-              Our AI trading system has consistently outperformed traditional methods
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <div className="text-3xl font-bold text-primary mb-2">87%</div>
-                <div className="text-sm text-muted-foreground">Signal Accuracy</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary mb-2">24/7</div>
-                <div className="text-sm text-muted-foreground">Market Monitoring</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary mb-2">15%</div>
-                <div className="text-sm text-muted-foreground">Average Annual Return</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary mb-2">0.3s</div>
-                <div className="text-sm text-muted-foreground">Signal Response Time</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* CTA Section */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold font-nanum mb-4">Ready to Transform Your Trading?</h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of traders who have already upgraded their strategy with AI-powered insights.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2">
-              <Zap className="w-5 h-5" />
-              Get Started Now
-            </Button>
-            <Button size="lg" variant="outline">
-              View Live Demo
-            </Button>
           </div>
         </div>
       </div>
