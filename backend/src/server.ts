@@ -47,8 +47,9 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://s3.tradingview.com", "https://www.tradingview-widget.com", "https://data.tradingview.com"],
+      imgSrc: ["'self'", "data:", "https:", "https://s3.tradingview.com"],
+      connectSrc: ["'self'", "https://data.tradingview.com", "https://www.tradingview-widget.com", "https://s3.tradingview.com"],
     },
   },
 }));
