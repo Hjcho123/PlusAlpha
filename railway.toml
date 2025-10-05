@@ -1,3 +1,6 @@
+[build]
+buildCommand = "npm install --include=dev"
+
 [deploy]
-startCommand = "cd backend && npx tsx src/server.ts"
+startCommand = "npm install --include=dev --prefix backend && cd backend && npx tsx src/server.ts"
 healthcheckUrl = "/health"
