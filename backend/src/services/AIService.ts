@@ -879,8 +879,16 @@ Provide your comprehensive investment analysis in this exact JSON format:
       const content = response.data.candidates[0]?.content?.parts[0]?.text;
       if (!content) throw new Error('No response from Gemini');
 
-      console.log(`✅ Successfully parsed Gemini response for ${symbol}`);
-      return JSON.parse(content);
+      // Strip markdown code blocks if present
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json') && cleanContent.endsWith('```')) {
+        cleanContent = cleanContent.slice(7, -3).trim();
+      } else if (cleanContent.startsWith('```') && cleanContent.endsWith('```')) {
+        cleanContent = cleanContent.slice(3, -3).trim();
+      }
+
+      console.log(`✅ Successfully parsed and cleaned Gemini response for ${symbol}`);
+      return JSON.parse(cleanContent);
     } catch (error) {
       console.error(`❌ Gemini API error for ${symbol}:`, error);
       // Fallback to rule-based analysis
