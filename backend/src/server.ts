@@ -1,11 +1,17 @@
 import dotenv from 'dotenv';
 
 // Load environment variables FIRST
-dotenv.config({ path: '.env' });
+// In production (Railway), env vars are set directly - skip .env file
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '.env' });
+} else {
+  console.log('🔍 Production mode - loading env vars from Railway platform');
+}
 
-// Debug: Check if environment variables are loaded
-console.log('🔍 Server startup - GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY);
-console.log('🔍 Server startup - GROQ_API_KEY length:', process.env.GROQ_API_KEY?.length || 0);
+// Debug: Check if critical environment variables are loaded
+console.log('🔍 Server startup - NODE_ENV:', process.env.NODE_ENV);
+console.log('🔍 Server startup - MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('🔍 Server startup - GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY);
 
 import express from 'express';
 import cors from 'cors';
