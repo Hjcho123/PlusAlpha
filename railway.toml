@@ -1,5 +1,7 @@
 [build]
-buildCommand = "npm run build"
+buildCommand = "npm run build && npm install --include=dev --prefix backend"
 
 [deploy]
-startCommand = "npm run preview -- --host 0.0.0.0 --port $PORT"
+startCommand = "cd backend && npx tsx src/server.ts"
+buildCommand = "npm run build"
+healthcheckUrl = "/health"

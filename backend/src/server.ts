@@ -19,6 +19,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import { createServer } from 'http';
+import path from 'path';
 import { connectMongoDB, connectRedis, gracefulShutdown } from './config/database';
 import { corsOptions, errorHandler, notFound } from './middleware/auth';
 
@@ -36,6 +37,17 @@ import { WebSocketService } from './services/WebSocketService';
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// In production, serve the built React app
+if (process.env.NODE_ENV === 'production') {
+  console.log('🎨 Serving production React app...');
+  app.use(express.static(path.join(process.cwd(), '../dist')));
+
+  // Catch-all handler: send back React's index.html file for any non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(process.cwd(), '../dist/index.html'));
+  });
+}
 
 // Initialize WebSocket service
 const wsService = new WebSocketService(server);
