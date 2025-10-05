@@ -166,7 +166,6 @@ export const stockAPI = {
   }
 };
 
-// AI API
 export const aiAPI = {
   // Generate trading signal (requires authentication)
   generateTradingSignal: async (symbol: string, token: string): Promise<AIInsight> => {

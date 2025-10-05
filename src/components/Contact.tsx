@@ -34,11 +34,11 @@ const Contact = () => {
                   <p className="text-green-700 dark:text-green-300 mb-4">
                     Your account has been created successfully. You can now access all our AI-powered trading features.
                   </p>
-                  <Button 
-                    onClick={() => window.location.href = '/api-demo'}
+                  <Button
+                    onClick={() => window.location.href = '/dashboard'}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    Explore API Demo
+                    Explore Dashboard
                   </Button>
                 </CardContent>
               </Card>

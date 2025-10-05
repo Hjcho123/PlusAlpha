@@ -150,21 +150,18 @@ const Navigation = () => {
                   <a href="#products" className="text-foreground hover:text-primary transition-colors">
                     Products
                   </a>
-                  <a 
-                    href="#journey" 
+                  <a
+                    href="#contact"
                     className="text-foreground hover:text-primary transition-colors cursor-pointer"
                     onClick={(e) => {
                       e.preventDefault();
-                      const element = document.querySelector('#journey');
+                      const element = document.querySelector('#contact');
                       if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
                     }}
                   >
                     Create an Account
-                  </a>
-                  <a href="/api-demo" className="text-foreground hover:text-primary transition-colors">
-                    API Demo
                   </a>
                 </>
               )}

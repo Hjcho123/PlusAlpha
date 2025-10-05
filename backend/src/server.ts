@@ -31,7 +31,6 @@ import portfolioRoutes from './routes/portfolio';
 import newsRoutes from './routes/news';
 import watchlistRoutes from './routes/watchlist';
 
-// Import services
 import { WebSocketService } from './services/WebSocketService';
 
 const app = express();

@@ -199,6 +199,7 @@ const Dashboard = () => {
   const [chatLoading, setChatLoading] = useState<{[key: string]: boolean}>({});
   const chatRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   const [refreshCounters, setRefreshCounters] = useState<{[key: string]: number}>({});
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
 
   // Load user's watchlist from backend
   useEffect(() => {
@@ -401,9 +402,16 @@ const Dashboard = () => {
   };
 
   const generateInsight = async (symbol: string) => {
-    if (loading) return;
+    if (isGeneratingInsight) {
+      toast({
+        title: "Please Wait",
+        description: "AI analysis is already in progress. Please wait for the current analysis to complete.",
+      });
+      return;
+    }
 
-    setLoading(true);
+    setIsGeneratingInsight(true);
+
     try {
       const insight = await api.ai.generateDemoTradingSignal(symbol);
 
@@ -421,6 +429,7 @@ const Dashboard = () => {
           type: insight.type
         };
         setInsights(prev => [newInsight, ...prev.slice(0, 5)]);
+        setActiveTab('insights'); // Switch to insights tab
         toast({
           title: "AI Analysis Complete",
           description: `${insight.action.toUpperCase()} - ${insight.confidence}% confidence`,
@@ -440,7 +449,7 @@ const Dashboard = () => {
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsGeneratingInsight(false);
     }
   };
 
@@ -696,10 +705,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
+          <TabsList className="grid w-full grid-cols-2 bg-card border border-border">
             <TabsTrigger value="watchlist" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Watchlist</TabsTrigger>
             <TabsTrigger value="insights" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">AI Insights</TabsTrigger>
-            <TabsTrigger value="news" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">News & Events</TabsTrigger>
           </TabsList>
 
           {/* Enhanced Watchlist Tab */}
@@ -791,7 +799,7 @@ const Dashboard = () => {
                                 : [...prev, stock.symbol]
                             );
                           }}
-                          className="trading-button-secondary flex-1"
+                          className="trading-button-secondary"
                         >
                           {selectedStocks.includes(stock.symbol) ? 'Deselect' : 'Compare'}
                         </Button>
@@ -801,20 +809,32 @@ const Dashboard = () => {
                             e.stopPropagation();
                             generateInsight(stock.symbol);
                           }}
-                          className="trading-button-primary flex-1"
+                          disabled={isGeneratingInsight}
+                          className="trading-button-primary"
                         >
-                          <Brain className="w-3 h-3 mr-1" />
-                          Analyze
+                          {isGeneratingInsight ? (
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <Brain className="w-3 h-3 mr-1" />
+                          )}
+                          {isGeneratingInsight ? 'Analyzing...' : 'Analyze'}
                         </Button>
                       </div>
 
-                      {/* Refresh Counter Badge */}
-                      <div className="flex justify-center">
-                        <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
-                          <span className="text-xs font-mono text-primary font-medium">
-                            Refreshes: {refreshCounters[stock.symbol] || 0}
-                          </span>
-                        </div>
+                      {/* View Stock Chart Button */}
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `/stock/${stock.symbol}#chart`;
+                          }}
+                          className="bg-accent/5 border-accent/20 hover:bg-accent/10 hover:border-accent/30"
+                        >
+                          <LineChartIcon className="w-3 h-3 mr-1" />
+                          View Stock Graph
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -1073,35 +1093,12 @@ const Dashboard = () => {
                   <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                     Generate basic insights by clicking "Analyze" on any stock in your watchlist.
                   </p>
-                  <Button
-                    onClick={() => watchlist[0] && generateInsight(watchlist[0].symbol)}
-                    disabled={!watchlist.length}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Brain className="w-4 h-4 mr-2" />
-                    Generate Sample Insight
-                  </Button>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
 
-          {/* News Tab - Removed fake data, would need real news API */}
-          <TabsContent value="news" className="space-y-6">
-            <Card className="bg-card border-border">
-              <CardContent className="text-center py-12">
-                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold text-xl mb-2 text-foreground">News & Events</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Real-time news and market events would be displayed here with a proper news API integration.
-                </p>
-                <Button variant="outline" className="border-border">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Connect News API
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
       

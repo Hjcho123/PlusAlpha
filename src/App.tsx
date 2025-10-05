@@ -15,7 +15,6 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import DesktopOnly from "./components/DesktopOnly"; // Add this import
-import ApiExample from "./components/ApiExample"; // Add API example component
 import StockDetail from "./pages/StockDetail"; // Add stock detail page
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -23,7 +22,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 const initializeTheme = () => {
   const savedTheme = localStorage.getItem('theme');
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
+
   if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
     document.documentElement.classList.add('dark');
   } else {
@@ -59,7 +58,6 @@ const App = () => {
               <Route path="/predictive-analytics" element={<PredictiveAnalytics />} />
               <Route path="/portfolio-optimization" element={<PortfolioOptimization />} />
               <Route path="/risk-management" element={<RiskManagement />} />
-              <Route path="/api-demo" element={<ApiExample />} />
               <Route path="/stock/:symbol" element={<StockDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
