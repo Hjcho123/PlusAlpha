@@ -38,17 +38,6 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3001;
 
-// In production, serve the built React app
-if (process.env.NODE_ENV === 'production') {
-  console.log('🎨 Serving production React app...');
-  app.use(express.static(path.join(process.cwd(), '../dist')));
-
-  // Catch-all handler: send back React's index.html file for any non-API routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(process.cwd(), '../dist/index.html'));
-  });
-}
-
 // Initialize WebSocket service
 const wsService = new WebSocketService(server);
 
@@ -77,12 +66,20 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// API routes - PUT THESE BEFORE STATIC FILES!
+app.use('/api/auth', authRoutes);
+app.use('/api/stocks', stockRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/watchlist', watchlistRoutes);
+
 // Health check endpoint
 app.get('/health', async (req, res) => {
   try {
     const { checkDatabaseHealth } = await import('./config/database');
     const dbHealth = await checkDatabaseHealth();
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -104,14 +101,6 @@ app.get('/health', async (req, res) => {
     });
   }
 });
-
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/stocks', stockRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/portfolio', portfolioRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/watchlist', watchlistRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -144,6 +133,17 @@ app.get('/api/ws/stats', (req, res) => {
     timestamp: new Date()
   });
 });
+
+// In production, serve the built React app - AFTER API ROUTES!
+if (process.env.NODE_ENV === 'production') {
+  console.log('🎨 Serving production React app...');
+  app.use(express.static(path.join(process.cwd(), '../dist')));
+
+  // Catch-all handler: send back React's index.html file for any non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(process.cwd(), '../dist/index.html'));
+  });
+}
 
 // Error handling middleware
 app.use(notFound);
