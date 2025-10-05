@@ -511,9 +511,13 @@ export class StockDataService {
   // Database operations
   private async saveStockData(stockData: StockDataDocument): Promise<void> {
     try {
+      // Convert to object but exclude _id to avoid immutable field error during upsert
+      const updateData = stockData.toObject();
+      delete updateData._id;
+
       await StockData.findOneAndUpdate(
         { symbol: stockData.symbol },
-        stockData.toObject(),
+        updateData,
         { upsert: true, new: true }
       );
     } catch (error) {
