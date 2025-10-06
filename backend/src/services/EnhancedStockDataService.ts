@@ -1,6 +1,8 @@
 import axios from 'axios';
+import yahooFinance from 'yahoo-finance2';
 import { StockData, MarketData, StockDataDocument, MarketDataDocument } from '../models/StockData';
 import { stockDataService } from './StockDataService';
+import { ComprehensiveFinancialData } from '../types';
 
 export class EnhancedStockDataService {
   private readonly ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
@@ -10,6 +12,126 @@ export class EnhancedStockDataService {
     console.log(`🔍 Enhanced Stock Data Service initialized`);
     console.log(`📊 Alpha Vantage: ${process.env.ALPHA_VANTAGE_API_KEY ? '✅ Available' : '❌ Not configured'}`);
     console.log(`📰 Finnhub: ${process.env.FINNHUB_API_KEY ? '✅ Available' : '❌ Not configured'}`);
+  }
+
+  // Get comprehensive financial data from Yahoo Finance (same as StockController.getFundamentals but returns data instead of void)
+  async getComprehensiveYahooFinanceData(symbol: string): Promise<ComprehensiveFinancialData | null> {
+    try {
+      console.log(`📊 Fetching comprehensive Yahoo Finance data for ${symbol}`);
+
+      const sym = symbol.toUpperCase();
+
+      // ============================================================================
+      // PHASE 1: BASIC TRADING DATA FROM YAHOO QUOTE
+      // ============================================================================
+      const quote = await yahooFinance.quote(sym);
+
+      // ============================================================================
+      // PHASE 2: VALUE AND STATISTICS DATA FROM YAHOO SUMMARYDETAIL
+      // ============================================================================
+      const stats = await yahooFinance.quoteSummary(sym, {
+        modules: ['summaryDetail', 'defaultKeyStatistics', 'financialData']
+      });
+
+      // CORRECTED P/E LOGIC: summaryDetail first, fallback to defaultKeyStatistics
+      const peRatio = stats.summaryDetail?.trailingPE || (stats.defaultKeyStatistics as any)?.trailingPE || null;
+      const epsValue = stats.defaultKeyStatistics?.trailingEps || null;
+
+      // ============================================================================
+      // PHASE 3: ANALYST RECOMMENDATIONS FROM RECOMMENDATION TREND
+      // ============================================================================
+      const analystData = await yahooFinance.quoteSummary(sym, { modules: ['recommendationTrend'] });
+
+      const analystRatings = analystData.recommendationTrend?.trend?.[0] ? {
+        strongBuy: analystData.recommendationTrend.trend[0].strongBuy || 0,
+        buy: analystData.recommendationTrend.trend[0].buy || 0,
+        hold: analystData.recommendationTrend.trend[0].hold || 0,
+        sell: analystData.recommendationTrend.trend[0].sell || 0,
+        strongSell: analystData.recommendationTrend.trend[0].strongSell || 0,
+        total: (analystData.recommendationTrend.trend[0].strongBuy || 0) +
+               (analystData.recommendationTrend.trend[0].buy || 0) +
+               (analystData.recommendationTrend.trend[0].hold || 0) +
+               (analystData.recommendationTrend.trend[0].sell || 0) +
+               (analystData.recommendationTrend.trend[0].strongSell || 0),
+        bullishPercent: ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0)) /
+                       ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0) +
+                        (analystData.recommendationTrend.trend[0].hold || 0) +
+                        (analystData.recommendationTrend.trend[0].sell || 0) +
+                        (analystData.recommendationTrend.trend[0].strongSell || 0)) * 100 || 0,
+        consensus: (() => {
+          const bullish = (analystData.recommendationTrend?.trend?.[0]?.strongBuy || 0) +
+                         (analystData.recommendationTrend?.trend?.[0]?.buy || 0);
+          const total = bullish +
+                       (analystData.recommendationTrend?.trend?.[0]?.hold || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0);
+
+          if (bullish > total * 0.5) return 'BUY' as const;
+          if ((analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+              (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0) > total * 0.5) return 'SELL' as const;
+          return 'HOLD' as const;
+        })()
+      } : null;
+
+      // ============================================================================
+      // PHASE 4: COMPANY PROFILE FROM ASSET PROFILE
+      // ============================================================================
+      const profile = await yahooFinance.quoteSummary(sym, { modules: ['assetProfile', 'summaryProfile'] });
+
+      // ============================================================================
+      // EXTRACT ALL DATA WITH PROPER FALLBACKS - NO HARDCODED DATA
+      // ============================================================================
+      const comprehensiveData: ComprehensiveFinancialData = {
+        // Valuation metrics
+        pe: peRatio,
+        eps: epsValue,
+        pegRatio: stats.defaultKeyStatistics?.pegRatio || null,
+        priceToBook: stats.defaultKeyStatistics?.priceToBook || null,
+        forwardPE: stats.defaultKeyStatistics?.forwardPE || null,
+        forwardEPS: stats.defaultKeyStatistics?.forwardPE ? stats.defaultKeyStatistics?.forwardPE : null,
+        beta: stats.summaryDetail?.beta || null,
+
+        // Financial health
+        debtToEquity: stats.financialData?.debtToEquity || null,
+        currentRatio: stats.financialData?.currentRatio || null,
+        quickRatio: stats.financialData?.quickRatio || null,
+        totalCash: stats.financialData?.totalCash || null,
+        freeCashFlow: stats.financialData?.freeCashflow || null,
+        roa: stats.financialData?.returnOnAssets || null,
+        roe: stats.financialData?.returnOnEquity || null,
+
+        // Dividends
+        dividendRate: stats.summaryDetail?.dividendRate || null,
+        dividendYield: stats.summaryDetail?.dividendYield || null,
+        dividendPayoutRatio: stats.summaryDetail?.payoutRatio || null,
+
+        // Analyst data
+        analystRatings,
+
+        // Company info
+        sector: profile.assetProfile?.sector || null,
+        industry: profile.assetProfile?.industry || null,
+        ceo: profile.assetProfile?.companyOfficers?.[0]?.name || null,
+        employees: profile.assetProfile?.fullTimeEmployees || null,
+        headquarters: profile.assetProfile ? `${profile.assetProfile.city || ''}, ${profile.assetProfile.state || ''}, ${profile.assetProfile.country || ''}`.trim() || null : null,
+        businessSummary: profile.assetProfile?.longBusinessSummary || null
+      };
+
+      console.log(`✅ Successfully extracted comprehensive Yahoo Finance data:`, {
+        hasValuation: !!(comprehensiveData.pe || comprehensiveData.pegRatio),
+        hasFinancialHealth: !!(comprehensiveData.roa || comprehensiveData.roe),
+        hasAnalystRatings: !!comprehensiveData.analystRatings,
+        hasCompanyProfile: !!(comprehensiveData.sector || comprehensiveData.ceo),
+        totalAnalysts: comprehensiveData.analystRatings?.total || 0
+      });
+
+      return comprehensiveData;
+    } catch (error) {
+      console.warn(`⚠️ Could not fetch comprehensive Yahoo Finance data for ${symbol}:`, error);
+      return null;
+    }
   }
 
   // Get enhanced stock data with Alpha Vantage
