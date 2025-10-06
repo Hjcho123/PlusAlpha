@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AIInsight, TechnicalIndicator, TradingSignal, RiskAssessment, PortfolioOptimization } from '../types';
+import { AIInsight, TechnicalIndicator, TradingSignal, RiskAssessment, PortfolioOptimization, ComprehensiveFinancialData } from '../types';
 import { AIInsight as AIInsightModel } from '../models/AIInsight';
 import { StockData } from '../models/StockData';
 import { MarketData } from '../models/StockData';
@@ -24,10 +24,10 @@ export class AIService {
     return !!this.GEMINI_API_KEY;
   }
 
-  // Generate trading signal for a stock
-  async generateTradingSignal(symbol: string, userId?: string): Promise<AIInsight | null> {
+  // Generate trading signal for a stock with comprehensive financial data
+  async generateTradingSignal(symbol: string, userId?: string, comprehensiveData?: ComprehensiveFinancialData): Promise<AIInsight | null> {
     try {
-      console.log(`🔍 Starting generateTradingSignal for ${symbol}`);
+      console.log(`🔍 Starting generateTradingSignal for ${symbol} with comprehensive data`);
 
       // Get current stock data from Yahoo Finance
       console.log(`📥 Fetching current stock data for ${symbol}...`);
@@ -55,9 +55,9 @@ export class AIService {
         console.log(`⚠️ Enhanced data not available for ${symbol}, using basic data`);
       }
 
-      console.log(`🤖 Generating AI analysis...`);
-      // Generate AI analysis using current stock data
-      const analysis = await this.generateStockAnalysisWithCurrentData(symbol, stockData, enhancedData);
+      console.log(`🤖 Generating AI analysis with comprehensive data...`);
+      // Generate AI analysis using current stock data and comprehensive financial data
+      const analysis = await this.generateStockAnalysisWithCurrentData(symbol, stockData, enhancedData, comprehensiveData);
       console.log(`✅ Analysis generated:`, analysis ? 'Success' : 'Failed - analysis is null');
 
       if (!analysis) {
@@ -365,7 +365,7 @@ export class AIService {
   }
 
   // Generate AI analysis using current stock data only
-  private async generateStockAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any): Promise<any> {
+  private async generateStockAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any, comprehensiveData?: ComprehensiveFinancialData): Promise<any> {
     console.log(`🤖 Generating AI analysis with current data for ${symbol}`);
 
     // Check if Gemini API key is valid by testing it first
@@ -810,12 +810,14 @@ Format as JSON:
     }
   }
 
-  // Gemini AI analysis with current data only
-  private async generateGeminiAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any): Promise<any> {
+  // Gemini AI analysis with current data and comprehensive financial data
+  private async generateGeminiAnalysisWithCurrentData(symbol: string, stockData: any, enhancedData: any, comprehensiveData?: ComprehensiveFinancialData): Promise<any> {
     const prompt = `
-You are a Professional Portfolio Advisor AI. Analyze the stock data for ${symbol} and provide confident, actionable investment recommendations. Be decisive - most stocks should receive a clear BUY, SELL, or HOLD recommendation rather than WATCH, unless truly unpredictable.
+You are a Professional Portfolio Advisor AI with access to comprehensive financial data. Analyze the stock data for ${symbol} and provide confident, actionable investment recommendations. Be decisive - most stocks should receive a clear BUY, SELL, or HOLD recommendation rather than WATCH.
 
-Current Stock Data:
+COMPREHENSIVE STOCK ANALYSIS DATA:
+
+=== BASIC STOCK METRICS ===
 - Symbol: ${symbol}
 - Current Price: $${stockData.price}
 - Daily Change: ${stockData.changePercent > 0 ? '+' : ''}${stockData.changePercent}%
@@ -823,45 +825,105 @@ Current Stock Data:
 - Market Cap: $${stockData.marketCap?.toLocaleString() || 'N/A'}
 - PE Ratio: ${stockData.pe || 'N/A'}
 
+${comprehensiveData ? `
+=== COMPREHENSIVE VALUATION METRICS ===
+- EPS (FY0): $${comprehensiveData.eps || 'N/A'}
+- PEG Ratio (5Y): ${comprehensiveData.pegRatio || 'N/A'}
+- Forward PE (FY1): ${comprehensiveData.forwardPE || 'N/A'}
+- Forward EPS (FY1): $${comprehensiveData.forwardEPS || 'N/A'}
+- Price-to-Book: ${comprehensiveData.priceToBook || 'N/A'}
+- Beta (Market Risk): ${comprehensiveData.beta || 'N/A'}
+
+=== DETAILED FINANCIAL HEALTH ===
+- Return on Assets (ROA): ${comprehensiveData.roa ? `${(comprehensiveData.roa * 100).toFixed(2)}%` : 'N/A'}
+- Return on Equity (ROE): ${comprehensiveData.roe ? `${(comprehensiveData.roe * 100).toFixed(2)}%` : 'N/A'}
+- Debt-to-Equity Ratio: ${comprehensiveData.debtToEquity || 'N/A'}
+- Current Ratio: ${comprehensiveData.currentRatio || 'N/A'}
+- Quick Ratio: ${comprehensiveData.quickRatio || 'N/A'}
+- Free Cash Flow: $${comprehensiveData.freeCashFlow ? this.formatMarketCap(comprehensiveData.freeCashFlow) : 'N/A'}
+- Total Cash (MRQ): $${comprehensiveData.totalCash ? this.formatMarketCap(comprehensiveData.totalCash) : 'N/A'}
+
+=== DIVIDENDS & YIELD ===
+- Dividend Yield: ${comprehensiveData.dividendYield ? `${(comprehensiveData.dividendYield * 100).toFixed(2)}%` : 'N/A'}
+- Annual Dividend Rate: $${comprehensiveData.dividendRate || 'N/A'}
+- Payout Ratio: ${comprehensiveData.dividendPayoutRatio ? `${(comprehensiveData.dividendPayoutRatio * 100).toFixed(2)}%` : 'N/A'}
+
+${comprehensiveData.analystRatings ? `
+=== ANALYST CONSENSUS ===
+- Strong Buy: ${comprehensiveData.analystRatings.strongBuy} analysts
+- Buy: ${comprehensiveData.analystRatings.buy} analysts
+- Hold: ${comprehensiveData.analystRatings.hold} analysts
+- Sell: ${comprehensiveData.analystRatings.sell} analysts
+- Strong Sell: ${comprehensiveData.analystRatings.strongSell} analysts
+- Total Analysts: ${comprehensiveData.analystRatings.total}
+- Overall Consensus: ${comprehensiveData.analystRatings.consensus}
+- Bullish Percentage: ${comprehensiveData.analystRatings.bullishPercent.toFixed(2)}%
+` : 'Analyst data not available'}
+
+=== COMPANY PROFILE ===
+- Company Name: ${comprehensiveData?.sector ? 'Available' : 'N/A'}
+- Sector: ${comprehensiveData?.sector || 'N/A'}
+- Industry: ${comprehensiveData?.industry || 'N/A'}
+- CEO: ${comprehensiveData?.ceo || 'N/A'}
+- Employee Count: ${comprehensiveData?.employees ? comprehensiveData.employees.toLocaleString() : 'N/A'}
+- Headquarters: ${comprehensiveData?.headquarters || 'N/A'}
+- Business Description: ${comprehensiveData?.businessSummary ? 'Provided' : 'Not available'}
+` : comprehensiveData ? '=== LIMITED DATA AVAILABLE ===\nUsing partial financial information for analysis.' : '=== BASIC DATA ONLY ===\nComprehensive financial data not provided for this analysis.'}
+
 ${enhancedData?.fundamentalData ? `
-Company Fundamentals:
-- Sector: ${enhancedData.fundamentalData.sector || 'N/A'}
-- Industry: ${enhancedData.fundamentalData.industry || 'N/A'}
-- Beta (volatility): ${enhancedData.fundamentalData.beta || 'N/A'}
+=== ENHANCED FUNDAMENTALS ===
 - Net Profit Margin: ${enhancedData.fundamentalData.profitMargin || 'N/A'}%
 - Return on Equity: ${enhancedData.fundamentalData.returnOnEquity || 'N/A'}%
 ` : ''}
 
 ${enhancedData?.newsSentiment ? `
-Market Sentiment Analysis:
+=== NEWS SENTIMENT ANALYSIS ===
 - Overall News Sentiment: ${enhancedData.newsSentiment.sentiment || 'neutral'}
 - Recent Articles: ${enhancedData.newsSentiment.newsCount || 0}
 ` : ''}
 
-INSTRUCTIONS FOR PROFESSIONAL ANALYSIS:
-- Be confident and decisive: Most analysis should recommend CLEAR action
-- Higher confidence levels (75-95%) are normal for informed recommendations
+INSTRUCTIONS FOR COMPREHENSIVE ANALYSIS:
+- Utilize ALL provided data - valuation metrics, financial health, analyst consensus, and company profile
+- Be confident and decisive: Most well-researched stocks should get CLEAR recommendations
+- Higher confidence levels (80-98%) are normal when comprehensive data is available
 - Use professional investment advisory language
-- Focus on whether this is suitable for a diversified portfolio
-- Consider both growth potential AND risk management
-- Only use "watch" if the stock shows extreme uncertainty or upcoming catalysts
+- Focus on whether this is suitable for a diversified portfolio based on ALL metrics
+- Consider growth potential, risk management, fundamental strength, and analyst consensus
+- Only recommend "watch" if the stock shows extreme uncertainty or major red flags
+- Analyze whether valuation metrics (PE, PEG, Forward PE) justify current price
+- Evaluate financial health (ROA/ROE, debt levels, cash position) for sustainability
+- Consider analyst consensus as a major factor, especially with high analyst counts
+- Assess company quality via sector/industry and business fundamentals
 
 Provide your comprehensive investment analysis in this exact JSON format:
 {
-  "description": "2-3 sentence professional analysis explaining the investment case",
+  "description": "3-4 sentence comprehensive analysis using all available data including valuation, financials, analysts, and company profile",
   "action": "buy|sell|hold|watch",
   "confidence": 85,
   "reasoning": [
-    "Technical analysis supports [bullish/bearish/neutral] momentum",
-    "Fundamental valuation indicates [attractive/fair/rich] entry point",
-    "Risk assessment: [suitable/requires caution/high risk] for portfolio allocation"
+    "Valuation analysis: PE/PEG ratios and forward metrics indicate [attractive/fair/rich] levels",
+    "Financial health: Strong ROA/ROE, low debt, robust cash flow demonstrate [excellent/good/poor] fundamentals",
+    "Analyst consensus: [X]% bullish with [Y] analysts showing [overwhelming/mixed/bearish] sentiment",
+    "Company profile: Operating in [sector] with [favorable/concerning] business characteristics"
   ]
 }
 `;
 
     try {
-      console.log(`🤖 Using Gemini API for current data analysis of ${symbol}`);
+      console.log(`🤖 Using Gemini API for comprehensive data analysis of ${symbol}`);
       console.log(`🔑 GEMINI_API_KEY available:`, !!this.GEMINI_API_KEY);
+      console.log(`📊 Comprehensive data provided:`, !!comprehensiveData);
+
+      if (comprehensiveData) {
+        console.log(`✅ AI has access to complete StockDetail data including:`, {
+          hasValuation: !!(comprehensiveData.pe || comprehensiveData.pegRatio),
+          hasFinancialHealth: !!(comprehensiveData.roa || comprehensiveData.roe),
+          hasAnalystRatings: !!comprehensiveData.analystRatings,
+          hasCompanyProfile: !!(comprehensiveData.sector || comprehensiveData.ceo),
+          totalAnalysts: comprehensiveData.analystRatings?.total || 0,
+          analystConsensus: comprehensiveData.analystRatings?.consensus || 'N/A'
+        });
+      }
 
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${this.GEMINI_API_KEY}`,
@@ -876,7 +938,7 @@ Provide your comprehensive investment analysis in this exact JSON format:
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 60000 // 60 second timeout for complex analysis
+          timeout: 90000 // 90 second timeout for comprehensive analysis
         }
       );
 
@@ -891,17 +953,18 @@ Provide your comprehensive investment analysis in this exact JSON format:
         cleanContent = cleanContent.slice(3, -3).trim();
       }
 
-      console.log(`✅ Successfully parsed and cleaned Gemini response for ${symbol}`);
+      console.log(`✅ Successfully parsed comprehensive Gemini response for ${symbol}`);
       const result = JSON.parse(cleanContent);
 
       // Normalize action to lowercase to match database enum ['buy', 'sell', 'hold', 'watch']
       if (result.action) result.action = result.action.toLowerCase();
 
+      console.log(`📋 AI Analysis Result: ${result.action} (${result.confidence}% confidence) ${comprehensiveData ? 'using comprehensive data' : 'using basic data'}`);
       return result;
     } catch (error) {
       console.error(`❌ Gemini API error for ${symbol}:`, error);
-      // Fallback to rule-based analysis
-      console.log(`🤖 Using rule-based analysis for ${symbol}`);
+      // Fallback to rule-based analysis with comprehensive data
+      console.log(`🤖 Using rule-based analysis with ${comprehensiveData ? 'comprehensive' : 'basic'} data`);
       return this.performRuleBasedAnalysisWithCurrentData(symbol, stockData, enhancedData);
     }
   }

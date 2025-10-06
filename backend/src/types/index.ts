@@ -71,6 +71,49 @@ export interface StockData {
   lastUpdated: Date;
 }
 
+export interface AnalystRatings {
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+  total: number;
+  bullishPercent: number;
+  consensus: 'BUY' | 'SELL' | 'HOLD';
+}
+
+export interface ComprehensiveFinancialData {
+  // Valuation metrics
+  pe: number | null;
+  eps: number | null;
+  pegRatio: number | null;
+  priceToBook: number | null;
+  forwardPE: number | null;
+  forwardEPS: number | null;
+  beta: number | null;
+  // Financial health
+  debtToEquity: number | null;
+  currentRatio: number | null;
+  quickRatio: number | null;
+  totalCash: number | null;
+  freeCashFlow: number | null;
+  roa: number | null;
+  roe: number | null;
+  // Dividends
+  dividendRate: number | null;
+  dividendYield: number | null;
+  dividendPayoutRatio: number | null;
+  // Analyst data
+  analystRatings: AnalystRatings | null;
+  // Company info
+  sector: string | null;
+  industry: string | null;
+  ceo: string | null;
+  employees: number | null;
+  headquarters: string | null;
+  businessSummary: string | null;
+}
+
 export interface MarketData {
   symbol: string;
   timestamp: Date;
@@ -120,16 +163,18 @@ export interface TradingSignal {
   createdAt: Date;
 }
 
+export interface RiskFactor {
+  factor: string;
+  impact: 'low' | 'medium' | 'high';
+  description: string;
+}
+
 export interface RiskAssessment {
   portfolioRisk: number; // 0-100
   diversificationScore: number; // 0-100
   volatilityScore: number; // 0-100
   recommendations: string[];
-  riskFactors: {
-    factor: string;
-    impact: 'low' | 'medium' | 'high';
-    description: string;
-  }[];
+  riskFactors: RiskFactor[];
 }
 
 export interface PortfolioOptimization {
