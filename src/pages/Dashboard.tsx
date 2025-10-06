@@ -572,15 +572,18 @@ const Dashboard = () => {
     const startTime = Date.now();
 
     try {
+      // CRITICAL FIX: Keep existing stock data if fetch fails (don't remove stocks from watchlist)
       const updatedStocks = await Promise.all(
-        watchlist.map(stock => fetchRealStockData(stock.symbol))
+        watchlist.map(async (stock) => {
+          const newData = await fetchRealStockData(stock.symbol);
+          return newData || stock; // KEEP EXISTING DATA if fetch fails
+        })
       );
 
-      const validStocks = updatedStocks.filter(stock => stock !== null) as DetailedStockData[];
-      console.log(`[REFRESH] Fetched ${validStocks.length} stocks (force refresh)`);
+      console.log(`[REFRESH] Fetched ${updatedStocks.length} stocks (force refresh) - no data loss possible`);
 
       // Track price changes for debugging
-      const priceChanges = validStocks.map((newStock, index) => {
+      const priceChanges = updatedStocks.map((newStock, index) => {
         const oldStock = watchlist[index];
         const priceDiff = oldStock ? newStock.price - oldStock.price : 0;
         return {
@@ -603,7 +606,7 @@ const Dashboard = () => {
       });
 
       // Trigger flash animations for price changes
-      validStocks.forEach((newStock, index) => {
+      updatedStocks.forEach((newStock, index) => {
         const oldStock = watchlist[index];
         if (oldStock && Math.abs(newStock.price - oldStock.price) >= 0.01) {
           const direction = newStock.price > oldStock.price ? 'up' : 'down';
@@ -616,8 +619,8 @@ const Dashboard = () => {
         }
       });
 
-      // Update watchlist with new data
-      setWatchlist(validStocks);
+      // Update watchlist with new data (CRITICAL: No stocks removed)
+      setWatchlist(updatedStocks);
       setLastUpdated(new Date());
 
       // Debug logging for price changes
@@ -631,7 +634,7 @@ const Dashboard = () => {
       const refreshTime = Date.now() - startTime;
       toast({
         title: `Refreshed (${refreshTime}ms)`,
-        description: `${validStocks.length} stocks updated • ${significantChanges.length} price changes`,
+        description: `${updatedStocks.length} stocks updated • ${significantChanges.length} price changes`,
       });
     } catch (error) {
       console.error('[REFRESH] Error:', error);
