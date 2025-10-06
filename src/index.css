@@ -678,13 +678,13 @@ textarea:focus {
 
   /* Bloomberg-Style Terminal Classes */
   .terminal-card {
-    /* Light theme default */
-    @apply bg-slate-50 border-slate-200;
-    background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 100%);
+    /* Light theme as default */
+    @apply bg-white border-gray-300;
+    background: linear-gradient(135deg, rgb(255, 255, 255) 0%, rgb(248, 250, 252) 100%);
     box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 0.05),
-      0 2px 4px -2px rgb(0 0 0 / 0.02),
-      inset 0 1px 0 0 rgb(255 255 255 / 0.5);
+      0 4px 6px -1px rgb(0 0 0 / 0.08),
+      0 2px 4px -2px rgb(0 0 0 / 0.04),
+      inset 0 1px 0 0 rgb(0 0 0 / 0.03);
 
     /* Dark theme override */
     .dark & {
@@ -701,16 +701,14 @@ textarea:focus {
     @apply overflow-x-auto rounded-b-lg;
     scrollbar-width: thin;
 
-    /* Dark theme table container */
+    /* Light theme table container (default) */
+    @apply bg-gray-50 border-t border-gray-300;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+
+    /* Dark theme table container override */
     .dark & {
       @apply bg-slate-800 border-t border-slate-700;
       scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
-    }
-
-    /* Light theme table container */
-    :not(.dark) & {
-      @apply bg-slate-100 border-t border-slate-300;
-      scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
     }
 
     &::-webkit-scrollbar {
@@ -719,40 +717,29 @@ textarea:focus {
 
     &::-webkit-scrollbar-track {
       border-radius: 4px;
+      background: rgba(249, 250, 251, 0.5);
 
       /* Dark theme scrollbar track */
       .dark & {
         background: rgba(30, 41, 59, 0.5);
       }
-
-      /* Light theme scrollbar track */
-      :not(.dark) & {
-        background: rgba(241, 245, 249, 0.5);
-      }
     }
 
     &::-webkit-scrollbar-thumb {
       border-radius: 4px;
+      background: rgba(156, 163, 175, 0.5);
 
       /* Dark theme scrollbar thumb */
       .dark & {
         background: rgba(71, 85, 105, 0.5);
       }
-
-      /* Light theme scrollbar thumb */
-      :not(.dark) & {
-        background: rgba(148, 163, 184, 0.5);
-      }
     }
 
     &::-webkit-scrollbar-thumb:hover {
+      background: rgba(107, 114, 128, 0.7);
+
       /* Dark theme hover */
       .dark & {
-        background: rgba(100, 116, 139, 0.7);
-      }
-
-      /* Light theme hover */
-      :not(.dark) & {
         background: rgba(100, 116, 139, 0.7);
       }
     }
@@ -763,20 +750,18 @@ textarea:focus {
   }
 
   .terminal-table-header {
-    /* Dark theme header */
+    /* Light theme header (default) */
+    @apply bg-gray-100 border-b border-gray-300;
+    th {
+      @apply px-6 py-4 text-left text-xs font-mono font-bold text-gray-700 uppercase tracking-wider;
+      letter-spacing: 0.05em;
+    }
+
+    /* Dark theme header override */
     .dark & {
       @apply bg-slate-800 border-b border-slate-600;
       th {
         @apply px-6 py-4 text-left text-xs font-mono font-bold text-slate-400 uppercase tracking-wider;
-        letter-spacing: 0.05em;
-      }
-    }
-
-    /* Light theme header */
-    :not(.dark) & {
-      @apply bg-slate-200 border-b border-slate-300;
-      th {
-        @apply px-6 py-4 text-left text-xs font-mono font-bold text-slate-600 uppercase tracking-wider;
         letter-spacing: 0.05em;
       }
     }
@@ -786,14 +771,12 @@ textarea:focus {
     @apply px-6 py-4 text-left text-xs font-mono font-bold uppercase tracking-wider;
     letter-spacing: 0.05em;
 
-    /* Dark theme th */
+    /* Light theme th (default) */
+    @apply text-gray-800 border-r border-gray-300;
+
+    /* Dark theme th override */
     .dark & {
       @apply text-slate-400 border-r border-slate-700;
-    }
-
-    /* Light theme th */
-    :not(.dark) & {
-      @apply text-slate-700 border-r border-slate-300;
     }
 
     &:last-child {
@@ -804,28 +787,24 @@ textarea:focus {
   .terminal-tr {
     @apply transition-all duration-150;
 
-    /* Dark theme tr */
+    /* Light theme tr (default) */
+    @apply border-b border-gray-300/50 hover:bg-gray-100/50;
+
+    /* Dark theme tr override */
     .dark & {
       @apply border-b border-slate-700/50 hover:bg-slate-700/30;
-    }
-
-    /* Light theme tr */
-    :not(.dark) & {
-      @apply border-b border-slate-300/50 hover:bg-slate-200/30;
     }
   }
 
   .terminal-td {
     @apply px-6 py-2.5 text-sm font-mono;
 
-    /* Dark theme td */
+    /* Light theme td (default) */
+    @apply border-r border-gray-300/30;
+
+    /* Dark theme td override */
     .dark & {
       @apply border-r border-slate-700/30;
-    }
-
-    /* Light theme td */
-    :not(.dark) & {
-      @apply border-r border-slate-300/30;
     }
 
     &:last-child {
@@ -836,43 +815,38 @@ textarea:focus {
   .terminal-symbol {
     @apply font-mono font-bold text-lg whitespace-nowrap;
 
-    /* Dark theme symbol */
+    /* Light theme symbol (default) */
+    @apply text-blue-900 font-bold;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+
+    /* Dark theme symbol override */
     .dark & {
       @apply text-slate-200;
       text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
-
-    /* Light theme symbol */
-    :not(.dark) & {
-      @apply text-slate-800;
-      text-shadow: 0 0 6px rgba(59, 130, 246, 0.2);
-    }
   }
 
   .terminal-company {
-    /* Dark theme company */
+    /* Light theme company (default) */
+    @apply text-gray-800 font-medium whitespace-nowrap;
+
+    /* Dark theme company override */
     .dark & {
       @apply text-slate-300 font-medium whitespace-nowrap;
-    }
-
-    /* Light theme company */
-    :not(.dark) & {
-      @apply text-slate-700 font-medium whitespace-nowrap;
     }
   }
 
   .terminal-price {
     @apply font-mono font-bold text-xl whitespace-nowrap;
 
-    /* Dark theme price */
-    .dark & {
-      @apply text-slate-100;
-      text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
-    }
+    /* Light theme price (default) */
+    @apply text-blue-900 font-bold;
+    text-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
 
-    /* Light theme price */
-    :not(.dark) & {
-      @apply text-slate-900;
+    /* Dark theme price override */
+    .dark & {
+      @apply text-cyan-400 font-bold;
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
     }
   }
 
@@ -887,43 +861,37 @@ textarea:focus {
   .terminal-volume {
     @apply font-mono text-sm whitespace-nowrap;
 
-    /* Dark theme volume */
+    /* Light theme volume (default) */
+    @apply text-gray-600;
+
+    /* Dark theme volume override */
     .dark & {
       @apply text-slate-400;
-    }
-
-    /* Light theme volume */
-    :not(.dark) & {
-      @apply text-slate-600;
     }
   }
 
   .terminal-action-button {
     @apply p-1.5 rounded transition-all duration-150 focus:outline-none focus:ring-1 focus:ring-cyan-500;
 
-    /* Dark theme button */
+    /* Light theme button (default) */
+    @apply border border-gray-300 bg-gray-100 hover:bg-gray-200 hover:border-gray-400;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+
+    /* Dark theme button override */
     .dark & {
       @apply border border-slate-600 bg-slate-800 hover:bg-slate-700 hover:border-slate-500;
       box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     }
 
-    /* Light theme button */
-    :not(.dark) & {
-      @apply border border-slate-300 bg-slate-100 hover:bg-slate-200 hover:border-slate-400;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
-    }
-
     &:hover {
       transform: translateY(-1px);
 
-      /* Dark theme hover shadow */
+      /* Light theme hover shadow (default) */
+      box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.15);
+
+      /* Dark theme hover shadow override */
       .dark & {
         box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.4);
-      }
-
-      /* Light theme hover shadow */
-      :not(.dark) & {
-        box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1);
       }
     }
   }
