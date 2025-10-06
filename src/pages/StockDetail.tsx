@@ -755,9 +755,8 @@ const StockDetail: React.FC = () => {
             <div>
               <h4 className="font-medium text-blue-300 mb-2">DATA SOURCES & LIMITATIONS</h4>
               <p className="text-slate-400 text-sm leading-relaxed">
-                This comprehensive Bloomberg-style analysis uses Yahoo Finance as the primary data source.
-                Full analyst sentiment visualization requires additional module integration. P/E ratios are
-                sourced from summaryDetail for Apple due to their unique financial reporting structure.
+                This comprehensive analysis uses Yahoo Finance as the primary data source.
+                Full analyst sentiment visualization requires additional module integration. 
                 Real-time updates occur every 10 seconds. Some advanced metrics may not be available for
                 all stocks depending on market and region.
               </p>
