@@ -926,7 +926,6 @@ const Dashboard = () => {
                         <th className={`terminal-th text-right pr-6 ${watchlistSize}`}>PRICE</th>
                         <th className={`terminal-th text-right ${watchlistSize}`}>CHANGE</th>
                         <th className={`terminal-th text-right ${watchlistSize}`}>%CHG</th>
-                        <th className={`terminal-th text-right ${watchlistSize}`}>VOLUME</th>
                         <th className={`terminal-th text-center ${watchlistSize}`}>ACTIONS</th>
                       </tr>
                     </thead>
@@ -995,13 +994,6 @@ const Dashboard = () => {
                             } flex items-center justify-end gap-1`}>
                               {stock.changePercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                               {formatPercentage(stock.changePercent)}
-                            </div>
-                          </td>
-
-                          {/* Volume */}
-                          <td className={`terminal-td text-right ${watchlistSize}`}>
-                            <div className={`terminal-volume text-slate-400 ${watchlistSize}`}>
-                              {formatVolume(stock.volume)}
                             </div>
                           </td>
 
