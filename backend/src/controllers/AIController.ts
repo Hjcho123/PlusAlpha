@@ -150,7 +150,7 @@ export class AIController {
         comprehensiveData = null;
       }
 
-      console.log(`🤖 Calling AI service with ${comprehensiveData ? 'comprehensive' : 'basic'} data`);
+      console.log(`🤖 Calling AI service with ${comprehensiveData ? 'comprehensive' : 'basic'} data (A/R/O/CEO: ${comprehensiveData?.analystRatings?.total ?? 'N/A'}, ${comprehensiveData?.roa ?? 'N/A'}, ${comprehensiveData?.sector ?? 'N/A'}, ${comprehensiveData?.ceo ?? 'N/A'})`);
       const insight = await aiService.generateTradingSignal(symbol.toUpperCase(), userId, comprehensiveData || undefined);
 
       if (!insight) {
