@@ -796,10 +796,10 @@ textarea:focus {
     }
   }
 
-  /* OVERRIDE FOR EVEN/ODD ROWS IN TERMINAL - MUST BE LIGHTER */
+  /* OVERRIDE FOR EVEN/ODD ROWS IN TERMINAL - SOME GREYNESS FOR READABILITY */
   .terminal-tr:nth-child(even) {
-    /* Light theme even rows - almost white */
-    background-color: rgba(255, 255, 255, 0.7);
+    /* Light theme even rows - subtle grey for readability */
+    background-color: rgba(156, 163, 184, 0.05);
 
     /* Dark theme even rows */
     .dark & {
@@ -808,8 +808,8 @@ textarea:focus {
   }
 
   .terminal-tr:nth-child(odd) {
-    /* Light theme odd rows - pure white */
-    background-color: rgba(255, 255, 255, 0.9);
+    /* Light theme odd rows - even more subtle grey */
+    background-color: rgba(156, 163, 184, 0.02);
 
     /* Dark theme odd rows */
     .dark & {
@@ -818,8 +818,8 @@ textarea:focus {
   }
 
   .terminal-tr:hover {
-    /* Light theme hover */
-    background-color: rgba(255, 255, 255, 1) !important;
+    /* Light theme hover - slight greyness */
+    background-color: rgba(156, 163, 184, 0.1) !important;
 
     /* Dark theme hover */
     .dark & {

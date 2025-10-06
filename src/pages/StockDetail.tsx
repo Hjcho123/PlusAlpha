@@ -289,23 +289,25 @@ const StockDetail: React.FC = () => {
               <p className="text-xl text-muted-foreground">{stockData.name}</p>
             </div>
             <div className="text-right">
-              <div className={`text-4xl font-bold text-foreground mb-2 transition-colors duration-200 ${
-                flashingStocks[stockData.symbol] === 'up' ? 'price-flash-up' :
-                flashingStocks[stockData.symbol] === 'down' ? 'price-flash-down' :
-                'price-flash-no-animation'
+              <div className={`text-4xl font-bold mb-2 transition-all duration-300 ${
+                flashingStocks[stockData.symbol] === 'up' ? 'text-green-500 scale-110' :
+                flashingStocks[stockData.symbol] === 'down' ? 'text-red-500 scale-110' :
+                'text-foreground scale-100'
               }`}>
                 {formatCurrency(stockData.price)}
               </div>
-              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className={`text-lg px-4 py-2 transition-all duration-200 ${
-                flashingStocks[stockData.symbol] === 'up' ? 'price-flash-up' :
-                flashingStocks[stockData.symbol] === 'down' ? 'price-flash-down' :
-                'price-flash-no-animation'
-              }`}>
-                {stockData.change >= 0 ? (
-                  <TrendingUp className="w-5 h-5 mr-2" />
-                ) : (
-                  <TrendingDown className="w-5 h-5 mr-2" />
-                )}
+              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+                <span className={`inline-block mr-2 ${
+                  flashingStocks[stockData.symbol] === 'up' ? 'text-green-500' :
+                  flashingStocks[stockData.symbol] === 'down' ? 'text-red-500' :
+                  'text-current'
+                }`}>
+                  {stockData.change >= 0 ? (
+                    <TrendingUp className="w-5 h-5" />
+                  ) : (
+                    <TrendingDown className="w-5 h-5" />
+                  )}
+                </span>
                 {formatCurrency(Math.abs(stockData.change))} ({stockData.changePercent >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%)
               </Badge>
             </div>
