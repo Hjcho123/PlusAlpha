@@ -534,13 +534,131 @@ export class AIController {
         return;
       }
 
-      console.log(`📊 Generating demo trading signal for ${symbol}`);
+      console.log(`📊 Generating comprehensive demo trading signal for ${symbol}`);
 
-      // Generate insight without user ID for demo purposes
-      const insight = await aiService.generateTradingSignal(symbol.toUpperCase(), undefined);
+      // Directly fetch comprehensive data using Yahoo Finance (same as StockController)
+      let comprehensiveData: ComprehensiveFinancialData | null = null;
+      try {
+        console.log(`📊 Fetching comprehensive financial data for ${symbol}`);
+
+        const sym = symbol.toUpperCase();
+
+        // ============================================================================
+        // PHASE 1: BASIC TRADING DATA FROM YAHOO QUOTE
+        // ============================================================================
+        const quote = await yahooFinance.quote(sym);
+
+        // ============================================================================
+        // PHASE 2: VALUE AND STATISTICS DATA FROM YAHOO SUMMARYDETAIL
+        // ============================================================================
+        const stats = await yahooFinance.quoteSummary(sym, {
+          modules: ['summaryDetail', 'defaultKeyStatistics', 'financialData']
+        });
+
+        // CORRECTED P/E LOGIC: summaryDetail first, fallback to defaultKeyStatistics
+        const peRatio = stats.summaryDetail?.trailingPE || (stats.defaultKeyStatistics as any)?.trailingPE || null;
+        const epsValue = stats.defaultKeyStatistics?.trailingEps || null;
+
+        // ============================================================================
+        // PHASE 3: ANALYST RECOMMENDATIONS FROM RECOMMENDATION TREND
+        // ============================================================================
+        const analystData = await yahooFinance.quoteSummary(sym, { modules: ['recommendationTrend'] });
+
+        const analystRatings = analystData.recommendationTrend?.trend?.[0] ? {
+          strongBuy: analystData.recommendationTrend.trend[0].strongBuy || 0,
+          buy: analystData.recommendationTrend.trend[0].buy || 0,
+          hold: analystData.recommendationTrend.trend[0].hold || 0,
+          sell: analystData.recommendationTrend.trend[0].sell || 0,
+          strongSell: analystData.recommendationTrend.trend[0].strongSell || 0,
+          total: (analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                 (analystData.recommendationTrend.trend[0].buy || 0) +
+                 (analystData.recommendationTrend.trend[0].hold || 0) +
+                 (analystData.recommendationTrend.trend[0].sell || 0) +
+                 (analystData.recommendationTrend.trend[0].strongSell || 0),
+          bullishPercent: ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                          (analystData.recommendationTrend.trend[0].buy || 0)) /
+                         ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                          (analystData.recommendationTrend.trend[0].buy || 0) +
+                          (analystData.recommendationTrend.trend[0].hold || 0) +
+                          (analystData.recommendationTrend.trend[0].sell || 0) +
+                          (analystData.recommendationTrend.trend[0].strongSell || 0)) * 100 || 0,
+          consensus: (() => {
+            const bullish = (analystData.recommendationTrend?.trend?.[0]?.strongBuy || 0) +
+                           (analystData.recommendationTrend?.trend?.[0]?.buy || 0);
+            const total = bullish +
+                         (analystData.recommendationTrend?.trend?.[0]?.hold || 0) +
+                         (analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+                         (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0);
+
+            if (bullish > total * 0.5) return 'BUY' as const;
+            if ((analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+                (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0) > total * 0.5) return 'SELL' as const;
+            return 'HOLD' as const;
+          })()
+        } : null;
+
+        // ============================================================================
+        // PHASE 4: COMPANY PROFILE FROM ASSET PROFILE
+        // ============================================================================
+        const profile = await yahooFinance.quoteSummary(sym, { modules: ['assetProfile', 'summaryProfile'] });
+
+        // ============================================================================
+        // EXTRACT ALL DATA WITH PROPER FALLBACKS - NO HARDCODED DATA
+        // ============================================================================
+        comprehensiveData = {
+          // Valuation metrics
+          pe: peRatio,
+          eps: epsValue,
+          pegRatio: stats.defaultKeyStatistics?.pegRatio || null,
+          priceToBook: stats.defaultKeyStatistics?.priceToBook || null,
+          forwardPE: stats.defaultKeyStatistics?.forwardPE || null,
+          forwardEPS: stats.defaultKeyStatistics?.forwardPE ? stats.defaultKeyStatistics?.forwardPE : null,
+          beta: stats.summaryDetail?.beta || null,
+
+          // Financial health
+          debtToEquity: stats.financialData?.debtToEquity || null,
+          currentRatio: stats.financialData?.currentRatio || null,
+          quickRatio: stats.financialData?.quickRatio || null,
+          totalCash: stats.financialData?.totalCash || null,
+          freeCashFlow: stats.financialData?.freeCashflow || null,
+          roa: stats.financialData?.returnOnAssets || null,
+          roe: stats.financialData?.returnOnEquity || null,
+
+          // Dividends
+          dividendRate: stats.summaryDetail?.dividendRate || null,
+          dividendYield: stats.summaryDetail?.dividendYield || null,
+          dividendPayoutRatio: stats.summaryDetail?.payoutRatio || null,
+
+          // Analyst data
+          analystRatings,
+
+          // Company info
+          sector: profile.assetProfile?.sector || null,
+          industry: profile.assetProfile?.industry || null,
+          ceo: profile.assetProfile?.companyOfficers?.[0]?.name || null,
+          employees: profile.assetProfile?.fullTimeEmployees || null,
+          headquarters: profile.assetProfile ? `${profile.assetProfile.city || ''}, ${profile.assetProfile.state || ''}, ${profile.assetProfile.country || ''}`.trim() || null : null,
+          businessSummary: profile.assetProfile?.longBusinessSummary || null
+        };
+
+        console.log(`✅ Retrieved comprehensive data for demo:`, {
+          hasValuation: !!(comprehensiveData.pe || comprehensiveData.pegRatio),
+          hasFinancialHealth: !!(comprehensiveData.roa || comprehensiveData.roe),
+          hasAnalystRatings: !!comprehensiveData.analystRatings,
+          hasCompanyProfile: !!(comprehensiveData.sector || comprehensiveData.ceo),
+          totalAnalysts: comprehensiveData.analystRatings?.total || 0
+        });
+      } catch (error) {
+        console.warn(`⚠️ Could not fetch comprehensive data for demo ${symbol}, proceeding with basic data:`, error);
+        comprehensiveData = null;
+      }
+
+      console.log(`🤖 Calling AI service for demo with ${comprehensiveData ? 'comprehensive' : 'basic'} data`);
+      // Generate insight without user ID for demo purposes, but WITH comprehensive data
+      const insight = await aiService.generateTradingSignal(symbol.toUpperCase(), undefined, comprehensiveData || undefined);
 
       if (!insight) {
-        console.error(`❌ Failed to generate insight for ${symbol} - insight is null`);
+        console.error(`❌ Failed to generate demo insight for ${symbol} - insight is null`);
         res.status(500).json({
           success: false,
           error: 'Failed to generate trading signal - no insight returned',
@@ -549,11 +667,11 @@ export class AIController {
         return;
       }
 
-      console.log(`✅ Successfully generated demo trading signal for ${symbol}`);
+      console.log(`✅ Successfully generated comprehensive demo trading signal for ${symbol}`);
       res.status(200).json({
         success: true,
         data: insight,
-        message: 'Demo trading signal generated successfully',
+        message: `Demo trading signal generated successfully using ${comprehensiveData ? 'comprehensive financial data' : 'basic market data'}`,
         timestamp: new Date()
       } as ApiResponse);
     } catch (error: any) {
