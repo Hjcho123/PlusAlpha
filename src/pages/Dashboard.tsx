@@ -207,6 +207,19 @@ const Dashboard = () => {
   const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
   const [watchlistSize, setWatchlistSize] = useState<'compact' | 'normal' | 'spacious'>('normal');
 
+  // Load watchlist size preference from localStorage
+  useEffect(() => {
+    const savedSize = localStorage.getItem('watchlistSize');
+    if (savedSize && ['compact', 'normal', 'spacious'].includes(savedSize)) {
+      setWatchlistSize(savedSize as 'compact' | 'normal' | 'spacious');
+    }
+  }, []);
+
+  // Save watchlist size preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('watchlistSize', watchlistSize);
+  }, [watchlistSize]);
+
   // Load user's watchlist from backend
   useEffect(() => {
     if (isAuthenticated && token) {

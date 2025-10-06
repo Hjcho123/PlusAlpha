@@ -927,6 +927,104 @@ textarea:focus {
     }
   }
 
+  /* Size Classes for Watchlist - COMPACT, NORMAL, SPACIOUS */
+
+  /* TABLE SIZE VARIATIONS */
+  .terminal-table.compact {
+    font-size: 0.75rem; /* xs */
+  }
+
+  .terminal-table.normal {
+    /* Default/normal size - no additional styles needed */
+  }
+
+  .terminal-table.spacious {
+    font-size: 1rem; /* base */
+  }
+
+  /* TH/TD SIZE VARIATIONS */
+  .terminal-th.compact,
+  .terminal-td.compact {
+    padding-top: 0.25rem; /* 1 */
+    padding-bottom: 0.25rem; /* 1 */
+    padding-left: 0.5rem; /* 2 */
+    padding-right: 0.5rem; /* 2 */
+  }
+
+  .terminal-th.normal,
+  .terminal-td.normal {
+    /* Default padding */
+    padding-top: 0.5rem; /* 2 */
+    padding-bottom: 0.5rem; /* 2 */
+    padding-left: 1.5rem; /* 6 */
+    padding-right: 1.5rem; /* 6 */
+  }
+
+  .terminal-th.spacious,
+  .terminal-td.spacious {
+    padding-top: 0.75rem; /* 3 */
+    padding-bottom: 0.75rem; /* 3 */
+    padding-left: 2rem; /* 8 */
+    padding-right: 2rem; /* 8 */
+  }
+
+  /* SPECIFIC ELEMENT SIZE VARIATIONS */
+  .terminal-symbol.compact {
+    font-size: 0.875rem; /* sm */
+  }
+
+  .terminal-symbol.normal {
+    /* Default */
+  }
+
+  .terminal-symbol.spacious {
+    font-size: 1.125rem; /* lg */
+  }
+
+  .terminal-price.compact {
+    font-size: 1rem; /* base */
+  }
+
+  .terminal-price.normal {
+    /* Default */
+  }
+
+  .terminal-price.spacious {
+    font-size: 1.5rem; /* 2xl */
+  }
+
+  .terminal-company.compact {
+    font-size: 0.75rem; /* xs */
+  }
+
+  .terminal-company.spacious {
+    font-size: 1rem; /* base */
+  }
+
+  .terminal-change.compact,
+  .terminal-change-percent.compact,
+  .terminal-volume.compact {
+    font-size: 0.625rem; /* 2.5xs */
+  }
+
+  .terminal-change.spacious,
+  .terminal-change-percent.spacious,
+  .terminal-volume.spacious {
+    font-size: 0.875rem; /* sm */
+  }
+
+  .terminal-action-button.compact {
+    padding: 0.125rem !important; /* 0.5 */
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+
+  .terminal-action-button.spacious {
+    padding: 0.5rem !important; /* 2 */
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
   /* Price Flash Animation Classes */
   @keyframes price-flash-green {
     0% {
