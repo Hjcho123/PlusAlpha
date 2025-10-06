@@ -206,6 +206,8 @@ const Dashboard = () => {
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
   const [watchlistSize, setWatchlistSize] = useState<'compact' | 'normal' | 'spacious'>('normal');
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
+  const [refreshCompleted, setRefreshCompleted] = useState(false);
 
   // Load watchlist size preference from localStorage
   useEffect(() => {
@@ -568,6 +570,7 @@ const Dashboard = () => {
   };
 
   const refreshAllData = async () => {
+    setIsRefreshingData(true);
     setLoading(true);
     const startTime = Date.now();
 
@@ -632,10 +635,11 @@ const Dashboard = () => {
       }
 
       const refreshTime = Date.now() - startTime;
-      toast({
-        title: `Refreshed (${refreshTime}ms)`,
-        description: `${updatedStocks.length} stocks updated • ${significantChanges.length} price changes`,
-      });
+
+      // TRIGGER GREEN FLASH INSTEAD OF TOAST
+      setRefreshCompleted(true);
+      setTimeout(() => setRefreshCompleted(false), 1000); // Flash green for 1 second
+
     } catch (error) {
       console.error('[REFRESH] Error:', error);
       // Still increment counters even on error
@@ -648,13 +652,10 @@ const Dashboard = () => {
         return newCounters;
       });
 
-      toast({
-        title: "Refresh Failed",
-        description: "Could not update all stock data",
-        variant: "destructive"
-      });
+      // No toast - just log error
     } finally {
       setLoading(false);
+      setIsRefreshingData(false);
     }
   };
 
@@ -847,6 +848,7 @@ const Dashboard = () => {
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
+                    {/* LEFT SIDE: SIZE CONTROLS */}
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-green-600' : 'bg-red-600'}`}></div>
                       <span className="text-green-700 dark:text-green-400 text-sm font-mono">LIVE WATCHLIST</span>
@@ -884,14 +886,32 @@ const Dashboard = () => {
                         SPACIOUS
                       </Button>
                     </div>
-                    <Badge variant="outline" className="border-gray-600 dark:border-gray-300 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800">
-                      Auto-Refresh: 10s
-                    </Badge>
                   </div>
-                  <div className="text-right">
+
+                  {/* RIGHT SIDE: SYMBOLS COUNT + AUTO-REFRESH INDICATOR */}
+                  <div className="flex items-center gap-4">
                     <div className="text-slate-400 text-xs font-mono">
                       {watchlist.length} SYMBOLS • {lastUpdated.toLocaleTimeString()}
                     </div>
+                    <Badge
+                      variant="outline"
+                      className={`font-mono transition-all duration-300 ${
+                        isRefreshingData
+                          ? 'border-orange-400 bg-orange-50 text-orange-600 dark:bg-orange-950 dark:text-orange-300'
+                          : refreshCompleted
+                          ? 'border-green-400 bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-300'
+                          : 'border-gray-600 dark:border-gray-300 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800'
+                      }`}
+                    >
+                      {isRefreshingData ? (
+                        <>
+                          <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                          UPDATING
+                        </>
+                      ) : (
+                        'Auto-Refresh: 10s'
+                      )}
+                    </Badge>
                   </div>
                 </div>
               </CardHeader>
