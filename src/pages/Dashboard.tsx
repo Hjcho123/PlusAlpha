@@ -830,10 +830,10 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className="text-green-400 text-sm font-mono">LIVE WATCHLIST</span>
+                      <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-green-600' : 'bg-red-600'}`}></div>
+                      <span className="text-green-700 dark:text-green-400 text-sm font-mono">LIVE WATCHLIST</span>
                     </div>
-                    <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10">
+                    <Badge variant="outline" className="border-gray-600 dark:border-gray-300 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800">
                       Auto-Refresh: 10s
                     </Badge>
                   </div>

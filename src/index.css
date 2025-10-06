@@ -4,34 +4,34 @@
 
 @layer base {
   :root {
-    /* Professional Light Theme - Bloomberg Terminal Inspired */
-    /* Pure white background for clean, professional look */
-    --background: 0 0% 100%;
+    /* Ultra-Subtly Warm Light Theme - Barely Perceptible Warm Off-White */
+    /* Very subtle warm off-white background */
+    --background: 35 10% 99%;
 
-    /* Deep charcoal for text - reading comfort and professionalism */
-    --foreground: 210 11% 15%;
+    /* Subtly warm charcoal for text */
+    --foreground: 210 8% 16%;
 
-    /* Soft white cards with subtle elevation */
-    --card: 0 0% 100%;
-    --card-foreground: 210 11% 15%;
+    /* Genuinely slightly warm card backgrounds */
+    --card: 32 15% 97.5%;
+    --card-foreground: 210 8% 16%;
 
-    /* Pure white for popovers */
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 11% 15%;
+    /* Slightly warm popover */
+    --popover: 32 15% 97.5%;
+    --popover-foreground: 210 8% 16%;
 
-    /* Royal Blue - Trustworthy financial color */
+    /* SAME BLUE AS DARK THEME - Professional blue for light theme */
     --primary: 217 91% 51%;
     --primary-foreground: 0 0% 100%;
 
-    /* Light gray for secondary elements */
-    --secondary: 210 14% 96%;
-    --secondary-foreground: 210 11% 15%;
+    /* Ultra-subtly warm secondary */
+    --secondary: 30 12% 95%;
+    --secondary-foreground: 210 8% 16%;
 
-    /* Subtle gray backgrounds */
-    --muted: 210 14% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Almost imperceptibly warm muted backgrounds */
+    --muted: 30 12% 95%;
+    --muted-foreground: 215 12% 55%;
 
-    /* Electric Purple for accents - matches dark mode gradient */
+    /* ELECTRIC PURPLE like dark theme */
     --accent: 262 83% 58%;
     --accent-foreground: 0 0% 100%;
 
@@ -39,9 +39,9 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Light gray borders - minimal but present */
-    --border: 210 14% 92%;
-    --input: 210 14% 92%;
+    /* Subtly warm borders */
+    --border: 25 8% 90%;
+    --input: 25 8% 90%;
     --ring: 217 91% 51%;
 
     /* Sharp radius for modern financial interfaces */
@@ -54,8 +54,8 @@
     --chart-4: 38 92% 50%; /* Success green */
     --chart-5: 262 83% 58%; /* Electric purple */
 
-    /* Trading specific colors */
-    --bullish: 142 71% 45%; /* Green for gains */
+    /* Trading specific colors - LESS GREEN */
+    --bullish: 120 40% 35%; /* Muted dark green for gains instead of bright forest green */
     --bearish: 0 84% 60%; /* Red for losses */
     --neutral: 219 14% 60%; /* Gray for neutral */
     --premium: 262 83% 58%; /* Purple for premium features */
@@ -676,15 +676,15 @@ textarea:focus {
     opacity: 1;
   }
 
-  /* Bloomberg-Style Terminal Classes */
+  /* Bloomberg-Style Terminal Classes - BARELY WARM LIGHT THEME */
   .terminal-card {
-    /* Light theme as default */
+    /* SUPER subtle warm off-white - BARELY DIFFERENT from overall theme */
     @apply bg-white border-gray-300;
-    background: linear-gradient(135deg, rgb(255, 255, 255) 0%, rgb(248, 250, 252) 100%);
+    background: linear-gradient(135deg, rgb(255, 255, 254) 0%, rgb(254, 252, 248) 100%);
     box-shadow:
       0 4px 6px -1px rgb(0 0 0 / 0.08),
       0 2px 4px -2px rgb(0 0 0 / 0.04),
-      inset 0 1px 0 0 rgb(0 0 0 / 0.03);
+      inset 0 1px 0 0 rgb(0 0 0 / 0.02);
 
     /* Dark theme override */
     .dark & {
@@ -701,9 +701,9 @@ textarea:focus {
     @apply overflow-x-auto rounded-b-lg;
     scrollbar-width: thin;
 
-    /* Light theme table container (default) */
-    @apply bg-gray-50 border-t border-gray-300;
-    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+    /* Barely perceptible warm off-white/container (default) */
+    @apply bg-gray-50 border-t border-gray-200;
+    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 
     /* Dark theme table container override */
     .dark & {
@@ -750,8 +750,8 @@ textarea:focus {
   }
 
   .terminal-table-header {
-    /* Light theme header (default) */
-    @apply bg-gray-100 border-b border-gray-300;
+    /* Light theme header (default) - NEUTRAL/WHITE - SAME AS TABLE */
+    @apply bg-white border-b border-gray-200;
     th {
       @apply px-6 py-4 text-left text-xs font-mono font-bold text-gray-700 uppercase tracking-wider;
       letter-spacing: 0.05em;
@@ -815,9 +815,9 @@ textarea:focus {
   .terminal-symbol {
     @apply font-mono font-bold text-lg whitespace-nowrap;
 
-    /* Light theme symbol (default) */
-    @apply text-blue-900 font-bold;
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    /* Light theme symbol (default) - BLACK TEXT INSTEAD OF BLUE */
+    @apply text-black font-bold;
+    text-shadow: none;
 
     /* Dark theme symbol override */
     .dark & {
@@ -839,9 +839,9 @@ textarea:focus {
   .terminal-price {
     @apply font-mono font-bold text-xl whitespace-nowrap;
 
-    /* Light theme price (default) */
-    @apply text-blue-900 font-bold;
-    text-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    /* Light theme price (default) - BLACK TEXT instead of BLUE */
+    @apply text-black font-bold;
+    text-shadow: none;
 
     /* Dark theme price override */
     .dark & {
