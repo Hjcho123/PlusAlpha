@@ -32,7 +32,8 @@ I'm designing it as an alternative to Yahoo Finance
 
 ### Main Dashboard
 <div align="center">
-  <img width="732" height="701" alt="image" src="https://github.com/user-attachments/assets/02204af0-5938-4d6a-bc3a-89c62745c7a0" />
+  <img width="800" height="549" alt="image" src="https://github.com/user-attachments/assets/1aa8a007-e9a0-4d5b-9292-e38890f43295" />
+
 </div>
 
 ### Stock Information
