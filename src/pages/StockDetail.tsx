@@ -390,12 +390,12 @@ const StockDetail: React.FC = () => {
         {/* COMPACT FUNDAMENTALS LAYOUT */}
         <div className="space-y-4">
 
-          {/* VALUATION & ANALYST ROW */}
+          {/* VALUATION & FINANCIAL HEALTH ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* VALUATION METRICS - COMPACT */}
-            <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
-                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+            <Card className="terminal-card h-fit bg-card border-border">
+              <CardHeader className="pb-2 border-b border-border bg-muted/20">
+                <CardTitle className="text-card-foreground text-xs font-mono tracking-wider text-center">
                   [ VALUATION METRICS ]
                 </CardTitle>
               </CardHeader>
@@ -433,48 +433,48 @@ const StockDetail: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* ANALYST CONSENSUS - COMPACT */}
-            <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
-                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
-                  [ ANALYST CONSENSUS ]
+            {/* FINANCIAL HEALTH - COMPACT */}
+            <Card className="terminal-card h-fit bg-card border-border">
+              <CardHeader className="pb-2 border-b border-border bg-muted/20">
+                <CardTitle className="text-card-foreground text-xs font-mono tracking-wider text-center">
+                  [ FINANCIAL HEALTH ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                {financialData?.analystRatings ? (
-                  <>
-                    {/* Compact analyst ratings */}
-                    <div className="grid grid-cols-5 gap-2 mb-4 text-center">
-                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.strongBuy}</div>
-                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.buy}</div>
-                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.hold}</div>
-                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.sell}</div>
-                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.strongSell}</div>
-                    </div>
-                    {/* Labels */}
-                    <div className="grid grid-cols-5 gap-2 mb-4 text-center text-xs text-slate-500 font-mono">
-                      <div>STRONG<br/>BUY</div>
-                      <div>BUY</div>
-                      <div>HOLD</div>
-                      <div>SELL</div>
-                      <div>STRONG<br/>SELL</div>
-                    </div>
-
-                    {/* Consensus summary - compact */}
-                    <div className="p-3 bg-slate-900 border border-slate-700 rounded text-center mb-0">
-                      <div className="font-mono text-sm font-bold text-slate-200 mb-1">{financialData.analystRatings.consensus} CONSENSUS</div>
-                      <div className="font-mono text-xs text-slate-400 mb-2">
-                        {financialData.analystRatings.bullishPercent?.toFixed(1)}% BULLISH
-                      </div>
-                      <div className="mb-2">
-                        <Progress value={financialData.analystRatings.bullishPercent} className="h-2 bg-slate-800" />
-                      </div>
-                      <div className="font-mono text-xs text-slate-500">{financialData.analystRatings.total} ANALYSTS</div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="font-mono text-center text-slate-500 text-sm py-4 mb-0">NO ANALYST DATA AVAILABLE</div>
-                )}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">ROA (TTM)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.roa ? `${(financialData.roa * 100).toFixed(2)}%` : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">ROE (TTM)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.roe ? `${(financialData.roe * 100).toFixed(2)}%` : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">Beta (5Y Monthly)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.beta ? financialData.beta.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">Quick Ratio (MRQ)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.quickRatio ? financialData.quickRatio.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">Debt/Equity (MRQ)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.debtToEquity ? financialData.debtToEquity.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">Current Ratio (MRQ)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.currentRatio ? financialData.currentRatio.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">Free Cash Flow (TTM)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.freeCashFlow ? formatLargeNumber(financialData.freeCashFlow) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-mono text-muted-foreground text-sm">Total Cash (MRQ)</span>
+                    <span className="font-mono text-card-foreground">{financialData?.totalCash ? formatLargeNumber(financialData.totalCash) : '--'}</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -482,84 +482,124 @@ const StockDetail: React.FC = () => {
           {/* COMPANY PROFILE & FINANCIAL HEALTH ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* COMPANY PROFILE - COMPACT */}
-            <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
-                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+            <Card className="terminal-card h-fit bg-card border-border">
+              <CardHeader className="pb-2 border-b border-border bg-muted/20">
+                <CardTitle className="text-card-foreground text-xs font-mono tracking-wider text-center">
                   [ COMPANY PROFILE ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">NAME</span>
-                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{stockData.name || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">NAME</span>
+                    <span className="font-mono text-card-foreground text-right max-w-[60%] truncate">{stockData.name || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">SYMBOL</span>
-                    <span className="font-mono text-slate-200">{stockData.symbol || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">SYMBOL</span>
+                    <span className="font-mono text-card-foreground">{stockData.symbol || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">SECTOR</span>
-                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.sector || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">SECTOR</span>
+                    <span className="font-mono text-card-foreground text-right max-w-[60%] truncate">{financialData?.sector || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">INDUSTRY</span>
-                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.industry || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">INDUSTRY</span>
+                    <span className="font-mono text-card-foreground text-right max-w-[60%] truncate">{financialData?.industry || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">CEO</span>
-                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.ceo || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-border">
+                    <span className="font-mono text-muted-foreground text-sm">CEO</span>
+                    <span className="font-mono text-card-foreground text-right max-w-[60%] truncate">{financialData?.ceo || '--'}</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="font-mono text-slate-400 text-sm">EMPLOYEES</span>
-                    <span className="font-mono text-slate-200">{financialData?.employees ? financialData.employees.toLocaleString() : '--'}</span>
+                    <span className="font-mono text-muted-foreground text-sm">EMPLOYEES</span>
+                    <span className="font-mono text-card-foreground">{financialData?.employees ? financialData.employees.toLocaleString() : '--'}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* FINANCIAL HEALTH - COMPACT */}
-            <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
-                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
-                  [ FINANCIAL HEALTH ]
+            {/* ANALYST CONSENSUS - COMPACT WITH PIE CHART */}
+            <Card className="terminal-card h-fit bg-card border-border">
+              <CardHeader className="pb-2 border-b border-border bg-muted/20">
+                <CardTitle className="text-card-foreground text-xs font-mono tracking-wider text-center">
+                  [ ANALYST CONSENSUS ]
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">ROA (TTM)</span>
-                    <span className="font-mono text-slate-200">{financialData?.roa ? `${(financialData.roa * 100).toFixed(2)}%` : '--'}</span>
+              <CardContent className="p-3">
+                {financialData?.analystRatings ? (
+                  <div className="space-y-3">
+                    {/* Compact pie chart visualization */}
+                    <div className="flex justify-center">
+                      <div className="relative w-16 h-16">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                          {/* Bullish slice (Strong Buy + Buy) */}
+                          <path
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeDasharray={`${financialData.analystRatings.bullishPercent}, 100`}
+                          />
+                          {/* Hold slice */}
+                          <path
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831"
+                            fill="none"
+                            stroke="hsl(var(--muted))"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeDasharray={`${((financialData.analystRatings.hold / financialData.analystRatings.total) * 100)}, 100`}
+                            transform="rotate(3.6 18 18)"
+                            transform-origin="18 18"
+                          />
+                          {/* Bearish slice (Sell + Strong Sell) */}
+                          <path
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831"
+                            fill="none"
+                            stroke="hsl(var(--destructive))"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeDasharray={`${(((financialData.analystRatings.sell + financialData.analystRatings.strongSell) / financialData.analystRatings.total) * 100)}, 100`}
+                            transform={`rotate(${(3.6 * (financialData.analystRatings.strongBuy + financialData.analystRatings.buy + financialData.analystRatings.hold)) % 360}, 18, 18)`}
+                            transform-origin="18 18"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="font-mono text-xs text-card-foreground font-bold">{financialData.analystRatings.bullishPercent}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ratings breakdown */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center py-1 border-b border-border">
+                        <span className="font-mono text-primary text-xs">BULLISH</span>
+                        <span className="font-mono text-primary text-xs">{financialData.analystRatings.strongBuy + financialData.analystRatings.buy}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-border">
+                        <span className="font-mono text-muted-foreground text-xs">HOLD</span>
+                        <span className="font-mono text-muted-foreground text-xs">{financialData.analystRatings.hold}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="font-mono text-destructive text-xs">BEARISH</span>
+                        <span className="font-mono text-destructive text-xs">{financialData.analystRatings.sell + financialData.analystRatings.strongSell}</span>
+                      </div>
+                    </div>
+
+                    {/* Consensus summary */}
+                    <div className="pt-2 border-t border-border text-center">
+                      <div className="font-mono text-sm font-bold text-card-foreground">{financialData.analystRatings.consensus}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{financialData.analystRatings.total} analysts</div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">ROE (TTM)</span>
-                    <span className="font-mono text-slate-200">{financialData?.roe ? `${(financialData.roe * 100).toFixed(2)}%` : '--'}</span>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <PieChart className="w-8 h-8 text-muted opacity-50 mb-2" />
+                    <div className="font-mono text-center text-muted-foreground text-xs">
+                      NO ANALYST DATA
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">Beta (5Y Monthly)</span>
-                    <span className="font-mono text-slate-200">{financialData?.beta ? financialData.beta.toFixed(2) : '--'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">Quick Ratio (MRQ)</span>
-                    <span className="font-mono text-slate-200">{financialData?.quickRatio ? financialData.quickRatio.toFixed(2) : '--'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">Debt/Equity (MRQ)</span>
-                    <span className="font-mono text-slate-200">{financialData?.debtToEquity ? financialData.debtToEquity.toFixed(2) : '--'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">Current Ratio (MRQ)</span>
-                    <span className="font-mono text-slate-200">{financialData?.currentRatio ? financialData.currentRatio.toFixed(2) : '--'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
-                    <span className="font-mono text-slate-400 text-sm">Free Cash Flow (TTM)</span>
-                    <span className="font-mono text-slate-200">{financialData?.freeCashFlow ? formatLargeNumber(financialData.freeCashFlow) : '--'}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="font-mono text-slate-400 text-sm">Total Cash (MRQ)</span>
-                    <span className="font-mono text-slate-200">{financialData?.totalCash ? formatLargeNumber(financialData.totalCash) : '--'}</span>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
