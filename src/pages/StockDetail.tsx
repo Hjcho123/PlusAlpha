@@ -667,7 +667,6 @@ const StockDetail: React.FC = () => {
                                 fill="none"
                                 stroke="#10b981"
                                 strokeWidth="4"
-                                strokeLinecap="round"
                                 strokeDasharray={`${(financialData.analystRatings.strongBuy / financialData.analystRatings.total) * 100} 100`}
                               />
                             )}
@@ -680,7 +679,6 @@ const StockDetail: React.FC = () => {
                                 fill="none"
                                 stroke="#22c55e"
                                 strokeWidth="4"
-                                strokeLinecap="round"
                                 strokeDasharray={`${(financialData.analystRatings.buy / financialData.analystRatings.total) * 100} 100`}
                                 transform={`rotate(${((financialData.analystRatings.strongBuy / financialData.analystRatings.total) * 360)}, 18, 18)`}
                               />
@@ -694,7 +692,6 @@ const StockDetail: React.FC = () => {
                                 fill="none"
                                 stroke="#eab308"
                                 strokeWidth="4"
-                                strokeLinecap="round"
                                 strokeDasharray={`${(financialData.analystRatings.hold / financialData.analystRatings.total) * 100} 100`}
                                 transform={`rotate(${(((financialData.analystRatings.strongBuy + financialData.analystRatings.buy) / financialData.analystRatings.total) * 360)}, 18, 18)`}
                               />
@@ -708,7 +705,6 @@ const StockDetail: React.FC = () => {
                                 fill="none"
                                 stroke="#f97316"
                                 strokeWidth="4"
-                                strokeLinecap="round"
                                 strokeDasharray={`${(financialData.analystRatings.sell / financialData.analystRatings.total) * 100} 100`}
                                 transform={`rotate(${(((financialData.analystRatings.strongBuy + financialData.analystRatings.buy + financialData.analystRatings.hold) / financialData.analystRatings.total) * 360)}, 18, 18)`}
                               />
@@ -722,20 +718,16 @@ const StockDetail: React.FC = () => {
                                 fill="none"
                                 stroke="#ef4444"
                                 strokeWidth="4"
-                                strokeLinecap="round"
                                 strokeDasharray={`${(financialData.analystRatings.strongSell / financialData.analystRatings.total) * 100} 100`}
                                 transform={`rotate(${(((financialData.analystRatings.strongBuy + financialData.analystRatings.buy + financialData.analystRatings.hold + financialData.analystRatings.sell) / financialData.analystRatings.total) * 360)}, 18, 18)`}
                               />
                             )}
                           </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="font-bold text-xs text-foreground">
-                              {financialData.analystRatings.bullishPercent}%
-                            </span>
-                          </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-xs font-medium text-muted-foreground">Bullish</div>
+                          <div className="text-sm font-semibold text-foreground">
+                            {financialData.analystRatings.bullishPercent.toFixed(2)}% BULLISH
+                          </div>
                         </div>
                       </div>
                     </div>
