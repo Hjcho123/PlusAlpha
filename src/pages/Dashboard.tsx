@@ -903,7 +903,7 @@ const Dashboard = () => {
                           {/* Change */}
                           <td className="terminal-td text-right">
                             <div className={`terminal-change ${
-                              stock.change >= 0 ? 'text-green-400' : 'text-red-400'
+                              stock.change >= 0 ? 'text-[hsl(var(--bullish))]' : 'text-red-600'
                             } ${
                               flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
                               flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
@@ -916,7 +916,7 @@ const Dashboard = () => {
                           {/* Change Percent */}
                           <td className="terminal-td text-right">
                             <div className={`terminal-change-percent ${
-                              stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400'
+                              stock.changePercent >= 0 ? 'text-[hsl(var(--bullish))]' : 'text-red-600'
                             } ${
                               flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
                               flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
