@@ -50,6 +50,7 @@ interface ComprehensiveFinancialData {
   priceToBook: number | null;
   forwardPE: number | null;
   forwardEPS: number | null;
+  beta: number | null;
   // Financial health
   debtToEquity: number | null;
   currentRatio: number | null;
@@ -86,6 +87,7 @@ const StockDetail: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const navigate = useNavigate();
   const [stockData, setStockData] = useState<StockData | null>(null);
+  const [financialData, setFinancialData] = useState<ComprehensiveFinancialData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
@@ -95,8 +97,108 @@ const StockDetail: React.FC = () => {
   useEffect(() => {
     if (symbol) {
       loadStockData(symbol);
+      loadComprehensiveData(symbol);
     }
   }, [symbol]);
+
+  // Fetch comprehensive financial data for this specific stock
+  const loadComprehensiveData = async (sym: string) => {
+    try {
+      console.log(`Loading comprehensive data for ${sym}...`);
+
+      // Fetch real Yahoo Finance data for this stock
+      const [basicStats, analystData, profileData] = await Promise.all([
+        yahooFinance.quoteSummary(sym, { modules: ['summaryDetail', 'financialData', 'defaultKeyStatistics'] }),
+        yahooFinance.quoteSummary(sym, { modules: ['recommendationTrend'] }),
+        yahooFinance.quoteSummary(sym, { modules: ['assetProfile', 'summaryProfile'] })
+      ]);
+
+      // Structure real data for display
+      const analystRatings = analystData.recommendationTrend?.trend?.[0] ? {
+        strongBuy: analystData.recommendationTrend.trend[0].strongBuy || 0,
+        buy: analystData.recommendationTrend.trend[0].buy || 0,
+        hold: analystData.recommendationTrend.trend[0].hold || 0,
+        sell: analystData.recommendationTrend.trend[0].sell || 0,
+        strongSell: analystData.recommendationTrend.trend[0].strongSell || 0,
+        total: (analystData.recommendationTrend.trend[0].strongBuy || 0) +
+               (analystData.recommendationTrend.trend[0].buy || 0) +
+               (analystData.recommendationTrend.trend[0].hold || 0) +
+               (analystData.recommendationTrend.trend[0].sell || 0) +
+               (analystData.recommendationTrend.trend[0].strongSell || 0),
+        bullishPercent: ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0)) /
+                       ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0) +
+                        (analystData.recommendationTrend.trend[0].hold || 0) +
+                        (analystData.recommendationTrend.trend[0].sell || 0) +
+                        (analystData.recommendationTrend.trend[0].strongSell || 0)) * 100 || 0,
+        consensus: (() => {
+          const bullish = (analystData.recommendationTrend?.trend?.[0]?.strongBuy || 0) +
+                         (analystData.recommendationTrend?.trend?.[0]?.buy || 0);
+          const total = bullish +
+                       (analystData.recommendationTrend?.trend?.[0]?.hold || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0);
+
+          if (bullish > total * 0.5) return 'BUY' as const;
+          if ((analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+              (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0) > total * 0.5) return 'SELL' as const;
+          return 'HOLD' as const;
+        })()
+      } : null;
+
+      const comprehensiveData: ComprehensiveFinancialData = {
+        // PE Ratios from correct sources
+        pe: basicStats.summaryDetail?.trailingPE || (basicStats.defaultKeyStatistics as any)?.trailingPE || null,
+        eps: basicStats.defaultKeyStatistics?.trailingEps || null,
+        pegRatio: basicStats.defaultKeyStatistics?.pegRatio || null,
+        priceToBook: basicStats.defaultKeyStatistics?.priceToBook || null,
+        forwardPE: basicStats.defaultKeyStatistics?.forwardPE || null,
+        forwardEPS: basicStats.defaultKeyStatistics?.trailingEps || null,
+        beta: basicStats.summaryDetail?.beta || null,
+
+        // Financial health
+        debtToEquity: basicStats.financialData?.debtToEquity || null,
+        currentRatio: basicStats.financialData?.currentRatio || null,
+        quickRatio: basicStats.financialData?.quickRatio || null,
+        totalCash: basicStats.financialData?.totalCash || null,
+        freeCashFlow: basicStats.financialData?.freeCashflow || null,
+        roa: basicStats.financialData?.returnOnAssets || null,
+        roe: basicStats.financialData?.returnOnEquity || null,
+
+        // Dividends
+        dividendRate: basicStats.summaryDetail?.dividendRate || null,
+        dividendYield: basicStats.summaryDetail?.dividendYield || null,
+        dividendPayoutRatio: basicStats.summaryDetail?.payoutRatio || null,
+
+        // Analyst data
+        analystRatings,
+
+        // Company info
+        sector: profileData.assetProfile?.sector || null,
+        industry: profileData.assetProfile?.industry || null,
+        ceo: profileData.assetProfile?.companyOfficers?.[0]?.name || null,
+        employees: profileData.assetProfile?.fullTimeEmployees || null,
+        headquarters: profileData.assetProfile ? `${profileData.assetProfile.city || ''}, ${profileData.assetProfile.state || ''}, ${profileData.assetProfile.country || ''}`.trim() : null,
+        businessSummary: profileData.assetProfile?.longBusinessSummary || null
+      };
+
+      setFinancialData(comprehensiveData);
+    } catch (err) {
+      console.error(`Error loading comprehensive data for ${sym}:`, err);
+      // Set default -- values
+      setFinancialData({
+        pe: null, eps: null, pegRatio: null, priceToBook: null,
+        forwardPE: null, forwardEPS: null, beta: null,
+        debtToEquity: null, currentRatio: null, quickRatio: null,
+        totalCash: null, freeCashFlow: null, roa: null, roe: null,
+        dividendRate: null, dividendYield: null, dividendPayoutRatio: null,
+        analystRatings: null,
+        sector: null, industry: null, ceo: null, employees: null,
+        headquarters: null, businessSummary: null
+      });
+    }
+  };
 
   // Automatic refresh every 10 seconds
   useEffect(() => {
@@ -214,11 +316,6 @@ const StockDetail: React.FC = () => {
         // Keep other properties the same unless they changed
         pe: data.pe ?? prev.pe,
         eps: data.eps ?? prev.eps,
-        high: data.high ?? prev.high,
-        low: data.low ?? prev.low,
-        open: data.open ?? prev.open,
-        close: data.close ?? prev.close,
-        dividendYield: data.dividendYield ?? prev.dividendYield,
       } : null);
 
       console.log(`[STOCK_DETAIL] Successfully refreshed ${sym}: $${newPrice.toFixed(2)}`);
@@ -248,11 +345,6 @@ const StockDetail: React.FC = () => {
         marketCap: data.marketCap || 0,
         pe: data.pe,
         eps: data.eps,
-        high: data.high,
-        low: data.low,
-        open: data.open,
-        close: data.close,
-        dividendYield: data.dividendYield,
       });
     } catch (err) {
       console.error('Error loading stock data:', err);
@@ -369,264 +461,186 @@ const StockDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* BLOOMBERG-STYLE FUNDAMENTALS TABLES */}
-        <div className="space-y-6">
+        {/* COMPACT FUNDAMENTALS LAYOUT */}
+        <div className="space-y-4">
 
-          {/* VALUATION METRICS TABLE */}
-          <Card className="terminal-card">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">VALUATION METRICS</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="overflow-x-auto">
-                <table className="terminal-table normal w-full">
-                  <thead className="terminal-table-header">
-                    <tr>
-                      <th className="terminal-th text-left">METRIC</th>
-                      <th className="terminal-th text-center">VALUE</th>
-                      <th className="terminal-th text-center">INDUSTRY AVG</th>
-                      <th className="terminal-th text-center">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">P/E Ratio</td>
-                      <td className="terminal-td text-center font-mono text-blue-400">
-                        {stockData.pe ? stockData.pe.toFixed(2) : 'N/A'}
-                      </td>
-                      <td className="terminal-td text-center font-mono text-slate-400">24.5</td>
-                      <td className="terminal-td text-center">
-                        {stockData.pe ? (
-                          <Badge variant={stockData.pe > 30 ? 'destructive' : stockData.pe > 20 ? 'default' : 'secondary'}>
-                            {stockData.pe > 30 ? 'OVERVALUED' : stockData.pe > 20 ? 'FAIR' : 'UNDERVALUED'}
-                          </Badge>
-                        ) : (
-                          <span className="text-slate-500">N/A</span>
-                        )}
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">EPS</td>
-                      <td className="terminal-td text-center font-mono text-green-400">
-                        ${stockData.eps ? stockData.eps.toFixed(2) : 'N/A'}
-                      </td>
-                      <td className="terminal-td text-center font-mono text-slate-400">$2.45</td>
-                      <td className="terminal-td text-center">
-                        {stockData.eps ? (
-                          <Badge variant={stockData.eps > 0 ? 'default' : 'destructive'}>
-                            {stockData.eps > 0 ? 'PROFITABLE' : 'UNPROFITABLE'}
-                          </Badge>
-                        ) : null}
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Market Cap</td>
-                      <td className="terminal-td text-center font-mono text-purple-400">
-                        {stockData.marketCap ? formatLargeNumber(stockData.marketCap) : 'N/A'}
-                      </td>
-                      <td className="terminal-td text-center font-mono text-slate-400">$850B</td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="secondary">MEGA CAP</Badge>
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Dividend Yield</td>
-                      <td className="terminal-td text-center font-mono text-yellow-400">
-                        {stockData.dividendYield ? `${stockData.dividendYield.toFixed(2)}%` : 'N/A'}
-                      </td>
-                      <td className="terminal-td text-center font-mono text-slate-400">1.8%</td>
-                      <td className="terminal-td text-center">
-                        {stockData.dividendYield ? (
-                          <Badge variant={stockData.dividendYield > 3 ? 'default' : 'secondary'}>
-                            {stockData.dividendYield > 3 ? 'HIGH YIELD' : 'MODERATE'}
-                          </Badge>
-                        ) : null}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ANALYST CONSENSUS & SENTIMENT VISUALIZER - REQUIRES ADDITIONAL YAHOO DATA FETCH */}
-          <Card className="terminal-card">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">ANALYST CONSENSUS</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <p className="text-slate-400 mb-4">
-                  Real-time analyst sentiment data requires additional Yahoo Finance integration.
-                  Current display shows basic metrics. Full analyst consensus visualization
-                  would include bull/bear breakdown with percentage bars and rating distribution.
-                </p>
-                <Badge variant="outline" className="border-slate-600 text-slate-400">
-                  FEATURE REQUIRES ADDITIONAL YAHOO FINANCE MODULES
-                </Badge>
-              </div>
-
-              {/* Placeholder for analyst visualization that would pull from recommendationTrend */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                <div className="terminal-td rounded p-4">
-                  <div className="text-2xl font-bold text-green-500">?</div>
-                  <div className="text-sm text-slate-400">Strong Buy</div>
-                </div>
-                <div className="terminal-td rounded p-4">
-                  <div className="text-2xl font-bold text-blue-500">?</div>
-                  <div className="text-sm text-slate-400">Buy</div>
-                </div>
-                <div className="terminal-td rounded p-4">
-                  <div className="text-2xl font-bold text-slate-500">?</div>
-                  <div className="text-sm text-slate-400">Hold</div>
-                </div>
-                <div className="terminal-td rounded p-4">
-                  <div className="text-2xl font-bold text-orange-500">?</div>
-                  <div className="text-sm text-slate-400">Sell</div>
-                </div>
-                <div className="terminal-td rounded p-4">
-                  <div className="text-2xl font-bold text-red-500">?</div>
-                  <div className="text-sm text-slate-400">Strong Sell</div>
-                </div>
-              </div>
-
-              {/* Placeholder for consensus calculation */}
-              <div className="mt-6 p-4 bg-slate-800 rounded">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white mb-2">SENTIMENT CONSENSUS: ?</div>
-                  <div className="text-slate-400">
-                    Would show: BUY, SELL, or HOLD based on analyst vote count
+          {/* VALUATION & ANALYST ROW */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* VALUATION METRICS - COMPACT */}
+            <Card className="terminal-card h-fit">
+              <CardHeader className="pb-2 border-b border-slate-700">
+                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
+                  <Target className="w-4 h-4 text-blue-400" />
+                  VALUATION METRICS
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">P/E Ratio</span>
+                    <span className="font-mono text-blue-400">{stockData.pe ? stockData.pe.toFixed(2) : '--'}</span>
                   </div>
-                  <Progress value={60} className="mt-4 h-3" />
-                  <div className="text-sm text-slate-500 mt-2">Bullish percentage visualization</div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">EPS</span>
+                    <span className="font-mono text-green-400">${stockData.eps ? stockData.eps.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Market Cap</span>
+                    <span className="font-mono text-purple-400">{stockData.marketCap ? formatLargeNumber(stockData.marketCap) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">PEG Ratio</span>
+                    <span className="font-mono text-cyan-400">{financialData?.pegRatio ? financialData.pegRatio.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Forward P/E</span>
+                    <span className="font-mono text-blue-400">{financialData?.forwardPE ? financialData.forwardPE.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Forward EPS</span>
+                    <span className="font-mono text-green-400">${financialData?.forwardEPS ? financialData.forwardEPS.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-mono text-slate-400 text-sm">Dividend Yield</span>
+                    <span className="font-mono text-yellow-400">{financialData?.dividendYield ? `${(financialData.dividendYield * 100).toFixed(2)}%` : '--'}</span>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* COMPANY PROFILE TABLE */}
-          <Card className="terminal-card">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">COMPANY PROFILE</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="overflow-x-auto">
-                <table className="terminal-table normal w-full">
-                  <thead className="terminal-table-header">
-                    <tr>
-                      <th className="terminal-th text-left">ATTRIBUTE</th>
-                      <th className="terminal-th text-left">VALUE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Company Name</td>
-                      <td className="terminal-td text-slate-300">{stockData.name}</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Symbol</td>
-                      <td className="terminal-td text-blue-400 font-mono">{stockData.symbol}</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Sector</td>
-                      <td className="terminal-td text-green-400">Technology</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Industry</td>
-                      <td className="terminal-td text-green-400">Consumer Electronics</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">CEO</td>
-                      <td className="terminal-td text-yellow-400">Timothy D. Cook</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Headquarters</td>
-                      <td className="terminal-td text-slate-300">Cupertino, CA, United States</td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Website</td>
-                      <td className="terminal-td text-blue-400">
-                        <a href="https://apple.com" className="hover:text-blue-300 underline">
-                          apple.com
-                        </a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+            {/* ANALYST CONSENSUS - COMPACT */}
+            <Card className="terminal-card h-fit">
+              <CardHeader className="pb-2 border-b border-slate-700">
+                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-400" />
+                  ANALYST CONSENSUS
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {financialData?.analystRatings ? (
+                  <>
+                    {/* Compact analyst ratings */}
+                    <div className="grid grid-cols-5 gap-2 mb-4 text-center">
+                      <div className="text-green-500 font-mono text-sm">{financialData.analystRatings.strongBuy}</div>
+                      <div className="text-blue-500 font-mono text-sm">{financialData.analystRatings.buy}</div>
+                      <div className="text-slate-500 font-mono text-sm">{financialData.analystRatings.hold}</div>
+                      <div className="text-orange-500 font-mono text-sm">{financialData.analystRatings.sell}</div>
+                      <div className="text-red-500 font-mono text-sm">{financialData.analystRatings.strongSell}</div>
+                    </div>
+                    {/* Labels */}
+                    <div className="grid grid-cols-5 gap-2 mb-4 text-center text-xs text-slate-500">
+                      <div>Strong<br/>Buy</div>
+                      <div>Buy</div>
+                      <div>Hold</div>
+                      <div>Sell</div>
+                      <div>Strong<br/>Sell</div>
+                    </div>
 
-          {/* FINANCIAL HEALTH TABLE */}
-          <Card className="terminal-card">
-            <CardHeader className="pb-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">FINANCIAL HEALTH</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="overflow-x-auto">
-                <table className="terminal-table normal w-full">
-                  <thead className="terminal-table-header">
-                    <tr>
-                      <th className="terminal-th text-left">METRIC</th>
-                      <th className="terminal-th text-center">VALUE</th>
-                      <th className="terminal-th text-center">RATING</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Debt/Equity Ratio</td>
-                      <td className="terminal-td text-center font-mono text-orange-400">154.49</td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="destructive">HIGH LEVERAGE</Badge>
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Current Ratio</td>
-                      <td className="terminal-td text-center font-mono text-red-400">0.87</td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="destructive">BELOW 1.0</Badge>
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Free Cash Flow</td>
-                      <td className="terminal-td text-center font-mono text-green-400">$94.9B</td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="default">EXCELLENT</Badge>
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Total Cash</td>
-                      <td className="terminal-td text-center font-mono text-green-400">$55.4B</td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="default">STRONG POSITION</Badge>
-                      </td>
-                    </tr>
-                    <tr className="terminal-tr">
-                      <td className="terminal-td font-mono">Volume (Daily)</td>
-                      <td className="terminal-td text-center font-mono text-blue-400">
-                        {stockData.volume ? `${(stockData.volume / 1000000).toFixed(2)}M` : 'N/A'}
-                      </td>
-                      <td className="terminal-td text-center">
-                        <Badge variant="secondary">HIGH VOLUME</Badge>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                    {/* Consensus summary - compact */}
+                    <div className="p-3 bg-slate-800 rounded text-center">
+                      <div className="text-sm font-bold text-white mb-1">{financialData.analystRatings.consensus} CONSENSUS</div>
+                      <div className="text-xs text-slate-400 mb-2">
+                        {financialData.analystRatings.bullishPercent?.toFixed(1)}% bullish
+                      </div>
+                      <div className="mb-2">
+                        <Progress value={financialData.analystRatings.bullishPercent} className="h-2" />
+                      </div>
+                      <div className="text-xs text-slate-500">{financialData.analystRatings.total} analysts</div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-slate-500 text-sm py-4">No analyst data available</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* COMPANY PROFILE & FINANCIAL HEALTH ROW */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* COMPANY PROFILE - COMPACT */}
+            <Card className="terminal-card h-fit">
+              <CardHeader className="pb-2 border-b border-slate-700">
+                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-blue-400" />
+                  COMPANY PROFILE
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Name</span>
+                    <span className="font-mono text-slate-300 text-right max-w-[60%] truncate">{stockData.name || '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Symbol</span>
+                    <span className="font-mono text-blue-400">{stockData.symbol || '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Sector</span>
+                    <span className="font-mono text-green-400 text-right max-w-[60%] truncate">{financialData?.sector || '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Industry</span>
+                    <span className="font-mono text-green-400 text-right max-w-[60%] truncate">{financialData?.industry || '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">CEO</span>
+                    <span className="font-mono text-yellow-400 text-right max-w-[60%] truncate">{financialData?.ceo || '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-mono text-slate-400 text-sm">Employees</span>
+                    <span className="font-mono text-slate-400">{financialData?.employees ? financialData.employees.toLocaleString() : '--'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* FINANCIAL HEALTH - COMPACT */}
+            <Card className="terminal-card h-fit">
+              <CardHeader className="pb-2 border-b border-slate-700">
+                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
+                  <PieChart className="w-4 h-4 text-blue-400" />
+                  FINANCIAL HEALTH
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">ROA</span>
+                    <span className="font-mono text-purple-400">{financialData?.roa ? `${(financialData.roa * 100).toFixed(2)}%` : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">ROE</span>
+                    <span className="font-mono text-purple-400">{financialData?.roe ? `${(financialData.roe * 100).toFixed(2)}%` : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Beta</span>
+                    <span className="font-mono text-cyan-400">{financialData?.beta ? financialData.beta.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Quick Ratio</span>
+                    <span className="font-mono text-blue-400">{financialData?.quickRatio ? financialData.quickRatio.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Debt/Equity</span>
+                    <span className="font-mono text-orange-400">{financialData?.debtToEquity ? financialData.debtToEquity.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Current Ratio</span>
+                    <span className="font-mono text-red-400">{financialData?.currentRatio ? financialData.currentRatio.toFixed(2) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                    <span className="font-mono text-slate-400 text-sm">Free Cash Flow</span>
+                    <span className="font-mono text-green-400">{financialData?.freeCashFlow ? formatLargeNumber(financialData.freeCashFlow) : '--'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-mono text-slate-400 text-sm">Total Cash</span>
+                    <span className="font-mono text-green-400">{financialData?.totalCash ? formatLargeNumber(financialData.totalCash) : '--'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
         </div>
 
