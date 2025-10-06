@@ -83,7 +83,8 @@ const formatCurrency = (value: number | undefined | null): string => {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      // Remove maximumFractionDigits constraint to show full precision from Yahoo Finance
+      useGrouping: true,
     }).format(value);
   } catch (error) {
     console.warn('Error formatting currency:', value, error);
