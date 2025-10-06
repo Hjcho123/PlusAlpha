@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { api, WebSocketService } from '@/services/api';
-import yahooFinance from 'yahoo-finance2';
+
 import {
   TrendingUp,
   TrendingDown,
@@ -101,89 +101,23 @@ const StockDetail: React.FC = () => {
     }
   }, [symbol]);
 
-  // Fetch comprehensive financial data for this specific stock
+  // Fetch comprehensive financial data for this specific stock from backend
   const loadComprehensiveData = async (sym: string) => {
     try {
       console.log(`Loading comprehensive data for ${sym}...`);
 
-      // Fetch real Yahoo Finance data for this stock
-      const [basicStats, analystData, profileData] = await Promise.all([
-        yahooFinance.quoteSummary(sym, { modules: ['summaryDetail', 'financialData', 'defaultKeyStatistics'] }),
-        yahooFinance.quoteSummary(sym, { modules: ['recommendationTrend'] }),
-        yahooFinance.quoteSummary(sym, { modules: ['assetProfile', 'summaryProfile'] })
-      ]);
-
-      // Structure real data for display
-      const analystRatings = analystData.recommendationTrend?.trend?.[0] ? {
-        strongBuy: analystData.recommendationTrend.trend[0].strongBuy || 0,
-        buy: analystData.recommendationTrend.trend[0].buy || 0,
-        hold: analystData.recommendationTrend.trend[0].hold || 0,
-        sell: analystData.recommendationTrend.trend[0].sell || 0,
-        strongSell: analystData.recommendationTrend.trend[0].strongSell || 0,
-        total: (analystData.recommendationTrend.trend[0].strongBuy || 0) +
-               (analystData.recommendationTrend.trend[0].buy || 0) +
-               (analystData.recommendationTrend.trend[0].hold || 0) +
-               (analystData.recommendationTrend.trend[0].sell || 0) +
-               (analystData.recommendationTrend.trend[0].strongSell || 0),
-        bullishPercent: ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
-                        (analystData.recommendationTrend.trend[0].buy || 0)) /
-                       ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
-                        (analystData.recommendationTrend.trend[0].buy || 0) +
-                        (analystData.recommendationTrend.trend[0].hold || 0) +
-                        (analystData.recommendationTrend.trend[0].sell || 0) +
-                        (analystData.recommendationTrend.trend[0].strongSell || 0)) * 100 || 0,
-        consensus: (() => {
-          const bullish = (analystData.recommendationTrend?.trend?.[0]?.strongBuy || 0) +
-                         (analystData.recommendationTrend?.trend?.[0]?.buy || 0);
-          const total = bullish +
-                       (analystData.recommendationTrend?.trend?.[0]?.hold || 0) +
-                       (analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
-                       (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0);
-
-          if (bullish > total * 0.5) return 'BUY' as const;
-          if ((analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
-              (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0) > total * 0.5) return 'SELL' as const;
-          return 'HOLD' as const;
-        })()
-      } : null;
-
-      const comprehensiveData: ComprehensiveFinancialData = {
-        // PE Ratios from correct sources
-        pe: basicStats.summaryDetail?.trailingPE || (basicStats.defaultKeyStatistics as any)?.trailingPE || null,
-        eps: basicStats.defaultKeyStatistics?.trailingEps || null,
-        pegRatio: basicStats.defaultKeyStatistics?.pegRatio || null,
-        priceToBook: basicStats.defaultKeyStatistics?.priceToBook || null,
-        forwardPE: basicStats.defaultKeyStatistics?.forwardPE || null,
-        forwardEPS: basicStats.defaultKeyStatistics?.trailingEps || null,
-        beta: basicStats.summaryDetail?.beta || null,
-
-        // Financial health
-        debtToEquity: basicStats.financialData?.debtToEquity || null,
-        currentRatio: basicStats.financialData?.currentRatio || null,
-        quickRatio: basicStats.financialData?.quickRatio || null,
-        totalCash: basicStats.financialData?.totalCash || null,
-        freeCashFlow: basicStats.financialData?.freeCashflow || null,
-        roa: basicStats.financialData?.returnOnAssets || null,
-        roe: basicStats.financialData?.returnOnEquity || null,
-
-        // Dividends
-        dividendRate: basicStats.summaryDetail?.dividendRate || null,
-        dividendYield: basicStats.summaryDetail?.dividendYield || null,
-        dividendPayoutRatio: basicStats.summaryDetail?.payoutRatio || null,
-
-        // Analyst data
-        analystRatings,
-
-        // Company info
-        sector: profileData.assetProfile?.sector || null,
-        industry: profileData.assetProfile?.industry || null,
-        ceo: profileData.assetProfile?.companyOfficers?.[0]?.name || null,
-        employees: profileData.assetProfile?.fullTimeEmployees || null,
-        headquarters: profileData.assetProfile ? `${profileData.assetProfile.city || ''}, ${profileData.assetProfile.state || ''}, ${profileData.assetProfile.country || ''}`.trim() : null,
-        businessSummary: profileData.assetProfile?.longBusinessSummary || null
-      };
-
-      setFinancialData(comprehensiveData);
+      // For now, just set the data structure with -- values
+      // Backend endpoint needs to be added to fetch Yahoo Finance data server-side
+      setFinancialData({
+        pe: null, eps: null, pegRatio: null, priceToBook: null,
+        forwardPE: null, forwardEPS: null, beta: null,
+        debtToEquity: null, currentRatio: null, quickRatio: null,
+        totalCash: null, freeCashFlow: null, roa: null, roe: null,
+        dividendRate: null, dividendYield: null, dividendPayoutRatio: null,
+        analystRatings: null,
+        sector: null, industry: null, ceo: null, employees: null,
+        headquarters: null, businessSummary: null
+      });
     } catch (err) {
       console.error(`Error loading comprehensive data for ${sym}:`, err);
       // Set default -- values
