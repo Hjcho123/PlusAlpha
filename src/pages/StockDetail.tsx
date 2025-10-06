@@ -394,41 +394,40 @@ const StockDetail: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* VALUATION METRICS - COMPACT */}
             <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700">
-                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
-                  <Target className="w-4 h-4 text-blue-400" />
-                  VALUATION METRICS
+              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
+                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+                  [ VALUATION METRICS ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">P/E Ratio</span>
-                    <span className="font-mono text-blue-400">{stockData.pe ? stockData.pe.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">P/E Ratio (TTM)</span>
+                    <span className="font-mono text-slate-200">{stockData.pe ? stockData.pe.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">EPS</span>
-                    <span className="font-mono text-green-400">${stockData.eps ? stockData.eps.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">EPS (FY0)</span>
+                    <span className="font-mono text-slate-200">${stockData.eps ? stockData.eps.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
                     <span className="font-mono text-slate-400 text-sm">Market Cap</span>
-                    <span className="font-mono text-purple-400">{stockData.marketCap ? formatLargeNumber(stockData.marketCap) : '--'}</span>
+                    <span className="font-mono text-slate-200">{stockData.marketCap ? formatLargeNumber(stockData.marketCap) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">PEG Ratio</span>
-                    <span className="font-mono text-cyan-400">{financialData?.pegRatio ? financialData.pegRatio.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">PEG Ratio (5Y)</span>
+                    <span className="font-mono text-slate-200">{financialData?.pegRatio ? financialData.pegRatio.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Forward P/E</span>
-                    <span className="font-mono text-blue-400">{financialData?.forwardPE ? financialData.forwardPE.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Forward P/E (FY1)</span>
+                    <span className="font-mono text-slate-200">{financialData?.forwardPE ? financialData.forwardPE.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Forward EPS</span>
-                    <span className="font-mono text-green-400">${financialData?.forwardEPS ? financialData.forwardEPS.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Forward EPS (FY1)</span>
+                    <span className="font-mono text-slate-200">${financialData?.forwardEPS ? financialData.forwardEPS.toFixed(2) : '--'}</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="font-mono text-slate-400 text-sm">Dividend Yield</span>
-                    <span className="font-mono text-yellow-400">{financialData?.dividendYield ? `${(financialData.dividendYield * 100).toFixed(2)}%` : '--'}</span>
+                    <span className="font-mono text-slate-400 text-sm">Dividend Yield (TTM)</span>
+                    <span className="font-mono text-slate-200">{financialData?.dividendYield ? `${(financialData.dividendYield * 100).toFixed(2)}%` : '--'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -436,10 +435,9 @@ const StockDetail: React.FC = () => {
 
             {/* ANALYST CONSENSUS - COMPACT */}
             <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700">
-                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
-                  <Users className="w-4 h-4 text-blue-400" />
-                  ANALYST CONSENSUS
+              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
+                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+                  [ ANALYST CONSENSUS ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
@@ -447,35 +445,35 @@ const StockDetail: React.FC = () => {
                   <>
                     {/* Compact analyst ratings */}
                     <div className="grid grid-cols-5 gap-2 mb-4 text-center">
-                      <div className="text-green-500 font-mono text-sm">{financialData.analystRatings.strongBuy}</div>
-                      <div className="text-blue-500 font-mono text-sm">{financialData.analystRatings.buy}</div>
-                      <div className="text-slate-500 font-mono text-sm">{financialData.analystRatings.hold}</div>
-                      <div className="text-orange-500 font-mono text-sm">{financialData.analystRatings.sell}</div>
-                      <div className="text-red-500 font-mono text-sm">{financialData.analystRatings.strongSell}</div>
+                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.strongBuy}</div>
+                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.buy}</div>
+                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.hold}</div>
+                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.sell}</div>
+                      <div className="font-mono text-slate-200 text-sm">{financialData.analystRatings.strongSell}</div>
                     </div>
                     {/* Labels */}
-                    <div className="grid grid-cols-5 gap-2 mb-4 text-center text-xs text-slate-500">
-                      <div>Strong<br/>Buy</div>
-                      <div>Buy</div>
-                      <div>Hold</div>
-                      <div>Sell</div>
-                      <div>Strong<br/>Sell</div>
+                    <div className="grid grid-cols-5 gap-2 mb-4 text-center text-xs text-slate-500 font-mono">
+                      <div>STRONG<br/>BUY</div>
+                      <div>BUY</div>
+                      <div>HOLD</div>
+                      <div>SELL</div>
+                      <div>STRONG<br/>SELL</div>
                     </div>
 
                     {/* Consensus summary - compact */}
-                    <div className="p-3 bg-slate-800 rounded text-center">
-                      <div className="text-sm font-bold text-white mb-1">{financialData.analystRatings.consensus} CONSENSUS</div>
-                      <div className="text-xs text-slate-400 mb-2">
-                        {financialData.analystRatings.bullishPercent?.toFixed(1)}% bullish
+                    <div className="p-3 bg-slate-900 border border-slate-700 rounded text-center mb-0">
+                      <div className="font-mono text-sm font-bold text-slate-200 mb-1">{financialData.analystRatings.consensus} CONSENSUS</div>
+                      <div className="font-mono text-xs text-slate-400 mb-2">
+                        {financialData.analystRatings.bullishPercent?.toFixed(1)}% BULLISH
                       </div>
                       <div className="mb-2">
-                        <Progress value={financialData.analystRatings.bullishPercent} className="h-2" />
+                        <Progress value={financialData.analystRatings.bullishPercent} className="h-2 bg-slate-800" />
                       </div>
-                      <div className="text-xs text-slate-500">{financialData.analystRatings.total} analysts</div>
+                      <div className="font-mono text-xs text-slate-500">{financialData.analystRatings.total} ANALYSTS</div>
                     </div>
                   </>
                 ) : (
-                  <div className="text-center text-slate-500 text-sm py-4">No analyst data available</div>
+                  <div className="font-mono text-center text-slate-500 text-sm py-4 mb-0">NO ANALYST DATA AVAILABLE</div>
                 )}
               </CardContent>
             </Card>
@@ -485,37 +483,36 @@ const StockDetail: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* COMPANY PROFILE - COMPACT */}
             <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700">
-                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-blue-400" />
-                  COMPANY PROFILE
+              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
+                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+                  [ COMPANY PROFILE ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Name</span>
-                    <span className="font-mono text-slate-300 text-right max-w-[60%] truncate">{stockData.name || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">NAME</span>
+                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{stockData.name || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Symbol</span>
-                    <span className="font-mono text-blue-400">{stockData.symbol || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">SYMBOL</span>
+                    <span className="font-mono text-slate-200">{stockData.symbol || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Sector</span>
-                    <span className="font-mono text-green-400 text-right max-w-[60%] truncate">{financialData?.sector || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">SECTOR</span>
+                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.sector || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Industry</span>
-                    <span className="font-mono text-green-400 text-right max-w-[60%] truncate">{financialData?.industry || '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">INDUSTRY</span>
+                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.industry || '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
                     <span className="font-mono text-slate-400 text-sm">CEO</span>
-                    <span className="font-mono text-yellow-400 text-right max-w-[60%] truncate">{financialData?.ceo || '--'}</span>
+                    <span className="font-mono text-slate-200 text-right max-w-[60%] truncate">{financialData?.ceo || '--'}</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="font-mono text-slate-400 text-sm">Employees</span>
-                    <span className="font-mono text-slate-400">{financialData?.employees ? financialData.employees.toLocaleString() : '--'}</span>
+                    <span className="font-mono text-slate-400 text-sm">EMPLOYEES</span>
+                    <span className="font-mono text-slate-200">{financialData?.employees ? financialData.employees.toLocaleString() : '--'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -523,45 +520,44 @@ const StockDetail: React.FC = () => {
 
             {/* FINANCIAL HEALTH - COMPACT */}
             <Card className="terminal-card h-fit">
-              <CardHeader className="pb-2 border-b border-slate-700">
-                <CardTitle className="text-white text-sm font-mono flex items-center gap-2">
-                  <PieChart className="w-4 h-4 text-blue-400" />
-                  FINANCIAL HEALTH
+              <CardHeader className="pb-2 border-b border-slate-700 bg-slate-950">
+                <CardTitle className="text-slate-200 text-xs font-mono tracking-wider">
+                  [ FINANCIAL HEALTH ]
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">ROA</span>
-                    <span className="font-mono text-purple-400">{financialData?.roa ? `${(financialData.roa * 100).toFixed(2)}%` : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">ROA (TTM)</span>
+                    <span className="font-mono text-slate-200">{financialData?.roa ? `${(financialData.roa * 100).toFixed(2)}%` : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">ROE</span>
-                    <span className="font-mono text-purple-400">{financialData?.roe ? `${(financialData.roe * 100).toFixed(2)}%` : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">ROE (TTM)</span>
+                    <span className="font-mono text-slate-200">{financialData?.roe ? `${(financialData.roe * 100).toFixed(2)}%` : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Beta</span>
-                    <span className="font-mono text-cyan-400">{financialData?.beta ? financialData.beta.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Beta (5Y Monthly)</span>
+                    <span className="font-mono text-slate-200">{financialData?.beta ? financialData.beta.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Quick Ratio</span>
-                    <span className="font-mono text-blue-400">{financialData?.quickRatio ? financialData.quickRatio.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Quick Ratio (MRQ)</span>
+                    <span className="font-mono text-slate-200">{financialData?.quickRatio ? financialData.quickRatio.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Debt/Equity</span>
-                    <span className="font-mono text-orange-400">{financialData?.debtToEquity ? financialData.debtToEquity.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Debt/Equity (MRQ)</span>
+                    <span className="font-mono text-slate-200">{financialData?.debtToEquity ? financialData.debtToEquity.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Current Ratio</span>
-                    <span className="font-mono text-red-400">{financialData?.currentRatio ? financialData.currentRatio.toFixed(2) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Current Ratio (MRQ)</span>
+                    <span className="font-mono text-slate-200">{financialData?.currentRatio ? financialData.currentRatio.toFixed(2) : '--'}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                    <span className="font-mono text-slate-400 text-sm">Free Cash Flow</span>
-                    <span className="font-mono text-green-400">{financialData?.freeCashFlow ? formatLargeNumber(financialData.freeCashFlow) : '--'}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-700">
+                    <span className="font-mono text-slate-400 text-sm">Free Cash Flow (TTM)</span>
+                    <span className="font-mono text-slate-200">{financialData?.freeCashFlow ? formatLargeNumber(financialData.freeCashFlow) : '--'}</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
-                    <span className="font-mono text-slate-400 text-sm">Total Cash</span>
-                    <span className="font-mono text-green-400">{financialData?.totalCash ? formatLargeNumber(financialData.totalCash) : '--'}</span>
+                    <span className="font-mono text-slate-400 text-sm">Total Cash (MRQ)</span>
+                    <span className="font-mono text-slate-200">{financialData?.totalCash ? formatLargeNumber(financialData.totalCash) : '--'}</span>
                   </div>
                 </div>
               </CardContent>
