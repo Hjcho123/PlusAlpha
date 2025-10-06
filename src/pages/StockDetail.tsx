@@ -296,7 +296,9 @@ const StockDetail: React.FC = () => {
               }`}>
                 {formatCurrency(stockData.price)}
               </div>
-              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className={`text-lg px-4 py-2 ${
+                stockData.change >= 0 ? 'bg-green-500 hover:bg-green-600 border-green-500' : ''
+              }`}>
                 <span className={`inline-block mr-2 ${
                   flashingStocks[stockData.symbol] === 'up' ? 'text-green-500' :
                   flashingStocks[stockData.symbol] === 'down' ? 'text-red-500' :

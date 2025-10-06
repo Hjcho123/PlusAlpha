@@ -896,7 +896,7 @@ const Dashboard = () => {
                               flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
                               flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
                               'price-flash-no-animation'
-                            } ${index % 2 === 0 ? 'text-blue-600' : 'text-blue-700'}`}>
+                            } text-blue-700`}>
                               {formatCurrency(stock.price)}
                             </div>
                           </td>
