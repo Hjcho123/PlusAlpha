@@ -464,6 +464,10 @@ Format as JSON:
       console.log(`🔄 Parsing JSON response...`);
       const result = JSON.parse(content);
       console.log(`✅ Successfully parsed Gemini response for ${symbol}`);
+
+      // Normalize action to lowercase to match database enum ['buy', 'sell', 'hold', 'watch']
+      if (result.action) result.action = result.action.toLowerCase();
+
       return result;
     } catch (error) {
       console.error(`❌ Gemini API error for ${symbol}:`, error);
@@ -888,7 +892,12 @@ Provide your comprehensive investment analysis in this exact JSON format:
       }
 
       console.log(`✅ Successfully parsed and cleaned Gemini response for ${symbol}`);
-      return JSON.parse(cleanContent);
+      const result = JSON.parse(cleanContent);
+
+      // Normalize action to lowercase to match database enum ['buy', 'sell', 'hold', 'watch']
+      if (result.action) result.action = result.action.toLowerCase();
+
+      return result;
     } catch (error) {
       console.error(`❌ Gemini API error for ${symbol}:`, error);
       // Fallback to rule-based analysis
