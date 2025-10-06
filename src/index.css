@@ -985,30 +985,52 @@ textarea:focus {
     font-size: 1rem; /* base */
   }
 
-  /* TH/TD SIZE VARIATIONS */
+  /* TH/TD SIZE VARIATIONS - CONSISTENT ACROSS LIGHT/DARK */
   .terminal-th.compact,
   .terminal-td.compact {
-    padding-top: 0.25rem; /* 1 */
-    padding-bottom: 0.25rem; /* 1 */
-    padding-left: 0.5rem; /* 2 */
-    padding-right: 0.5rem; /* 2 */
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 
   .terminal-th.normal,
   .terminal-td.normal {
     /* Default padding */
-    padding-top: 0.5rem; /* 2 */
-    padding-bottom: 0.5rem; /* 2 */
-    padding-left: 1.5rem; /* 6 */
-    padding-right: 1.5rem; /* 6 */
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
   }
 
   .terminal-th.spacious,
   .terminal-td.spacious {
-    padding-top: 0.75rem; /* 3 */
-    padding-bottom: 0.75rem; /* 3 */
-    padding-left: 2rem; /* 8 */
-    padding-right: 2rem; /* 8 */
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  /* HEADER SPECIFIC SIZE OVERRIDES FOR LIGHT/DARK CONSISTENCY */
+  .terminal-table-header.compact th {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .terminal-table-header.normal th {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  .terminal-table-header.spacious th {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
   }
 
   /* SPECIFIC ELEMENT SIZE VARIATIONS */
