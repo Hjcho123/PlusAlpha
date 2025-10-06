@@ -649,32 +649,136 @@ textarea:focus {
   @apply ring-2 ring-primary/20 border-primary;
 }
 
-/* Premium tooltips */
-[data-tooltip] {
-  position: relative;
-}
+  /* Premium tooltips */
+  [data-tooltip] {
+    position: relative;
+  }
 
-[data-tooltip]:before {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  padding: 0.5rem 0.75rem;
-  background: hsl(var(--foreground));
-  color: hsl(var(--background));
-  font-size: 0.875rem;
-  border-radius: 0.375rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-}
+  [data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 0.5rem 0.75rem;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
 
-[data-tooltip]:hover:before {
-  opacity: 1;
-}
+  [data-tooltip]:hover:before {
+    opacity: 1;
+  }
+
+  /* Bloomberg-Style Terminal Classes */
+  .terminal-card {
+    @apply bg-slate-900 border-slate-700 shadow-2xl;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .terminal-table-container {
+    @apply overflow-x-auto bg-slate-800 rounded-b-lg border-t border-slate-700;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+  }
+
+  .terminal-table-container::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .terminal-table-container::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 4px;
+  }
+
+  .terminal-table-container::-webkit-scrollbar-thumb {
+    background: rgba(71, 85, 105, 0.5);
+    border-radius: 4px;
+  }
+
+  .terminal-table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.7);
+  }
+
+  .terminal-table {
+    @apply w-full;
+  }
+
+  .terminal-table-header {
+    @apply bg-slate-800 border-b border-slate-600;
+    th {
+      @apply px-6 py-4 text-left text-xs font-mono font-bold text-slate-400 uppercase tracking-wider;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .terminal-th {
+    @apply px-6 py-4 text-left text-xs font-mono font-bold text-slate-400 uppercase tracking-wider;
+    letter-spacing: 0.05em;
+    @apply border-r border-slate-700;
+  }
+
+  .terminal-th:last-child {
+    @apply border-r-0;
+  }
+
+  .terminal-tr {
+    @apply transition-all duration-150 border-b border-slate-700/50 hover:bg-slate-700/30;
+  }
+
+  .terminal-td {
+    @apply px-6 py-2.5 text-sm font-mono;
+    @apply border-r border-slate-700/30;
+  }
+
+  .terminal-td:last-child {
+    @apply border-r-0;
+  }
+
+  .terminal-symbol {
+    @apply font-mono font-bold text-lg text-slate-200 whitespace-nowrap;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+
+  .terminal-company {
+    @apply text-slate-300 font-medium whitespace-nowrap;
+  }
+
+  .terminal-price {
+    @apply font-mono font-bold text-xl text-slate-100 whitespace-nowrap;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  }
+
+  .terminal-change {
+    @apply font-mono font-semibold text-sm whitespace-nowrap;
+  }
+
+  .terminal-change-percent {
+    @apply font-mono font-bold text-sm whitespace-nowrap;
+  }
+
+  .terminal-volume {
+    @apply text-slate-400 font-mono text-sm whitespace-nowrap;
+  }
+
+  .terminal-action-button {
+    @apply p-1.5 rounded transition-all duration-150 border border-slate-600 bg-slate-800 hover:bg-slate-700 hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  .terminal-action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+  }
 
 /* Responsive utilities */
 @media (max-width: 768px) {

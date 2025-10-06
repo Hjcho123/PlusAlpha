@@ -45,6 +45,7 @@ import {
   Trash2
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar } from 'recharts';
+import { WebSocketService } from "@/services/api";
 
 interface StockData {
   symbol: string;
@@ -200,6 +201,8 @@ const Dashboard = () => {
   const chatRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   const [refreshCounters, setRefreshCounters] = useState<{[key: string]: number}>({});
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
+  const [wsInstance, setWsInstance] = useState<WebSocketService | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load user's watchlist from backend
   useEffect(() => {
@@ -217,6 +220,87 @@ const Dashboard = () => {
       }
     });
   }, [chatMessages]);
+
+  // Automatic refresh every 10 seconds
+  useEffect(() => {
+    if (watchlist.length > 0) {
+      // Start automatic refresh
+      refreshIntervalRef.current = setInterval(() => {
+        console.log('[AUTO-REFRESH] Refreshing watchlist data...');
+        refreshAllData();
+      }, 10000); // 10 seconds
+
+      console.log('[AUTO-REFRESH] Started automatic refresh every 10 seconds');
+
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+          console.log('[AUTO-REFRESH] Stopped automatic refresh');
+        }
+      };
+    }
+  }, [watchlist.length]); // Only restart when watchlist length changes
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    if (watchlist.length > 0) {
+      console.log('[WEBSOCKET] Initializing WebSocket connection...');
+
+      const ws = new WebSocketService();
+
+      // Connect to WebSocket
+      ws.connect().then(() => {
+        console.log('[WEBSOCKET] Connected successfully');
+
+        // Subscribe to watchlist symbols
+        const symbols = watchlist.map(stock => stock.symbol);
+        ws.subscribe(symbols);
+        console.log('[WEBSOCKET] Subscribed to symbols:', symbols);
+
+        // Handle real-time price updates
+        ws.onPriceUpdate((data) => {
+          console.log('[WEBSOCKET] Received price update:', data);
+
+          setWatchlist(prev => prev.map(stock => {
+            if (stock.symbol === data.symbol) {
+              return {
+                ...stock,
+                price: data.price,
+                change: data.change || 0,
+                changePercent: data.changePercent || 0,
+                lastUpdated: new Date().toISOString()
+              };
+            }
+            return stock;
+          }));
+
+          setLastUpdated(new Date());
+        });
+
+        setWsInstance(ws);
+
+      }).catch(error => {
+        console.error('[WEBSOCKET] Connection failed:', error);
+      });
+
+      // Cleanup WebSocket on unmount
+      return () => {
+        if (ws) {
+          ws.disconnect();
+          console.log('[WEBSOCKET] Disconnected');
+        }
+      };
+    }
+  }, [watchlist.length]); // Reconnect when watchlist changes
+
+  // Update WebSocket subscriptions when watchlist changes
+  useEffect(() => {
+    if (wsInstance && watchlist.length > 0) {
+      const symbols = watchlist.map(stock => stock.symbol);
+      wsInstance.subscribe(symbols);
+      console.log('[WEBSOCKET] Updated subscriptions:', symbols);
+    }
+  }, [watchlist.map(stock => stock.symbol).join(','), wsInstance]); // Watch for symbol changes
 
   const loadUserWatchlist = async () => {
     if (!isAuthenticated || !token) {
@@ -710,216 +794,153 @@ const Dashboard = () => {
             <TabsTrigger value="insights" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">AI Insights</TabsTrigger>
           </TabsList>
 
-          {/* Enhanced Watchlist Tab */}
+          {/* Bloomberg-Style Terminal Watchlist */}
           <TabsContent value="watchlist" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {watchlist.map((stock) => (
-                <Card
-                  key={stock.symbol}
-                  className={`card-financial ${stock.changePercent >= 0 ? 'bullish-bg' : 'bearish-bg'}`}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="stock-symbol">{stock.symbol}</div>
-                        <div className="stock-name text-sm">{stock.name}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className={`font-mono text-sm ${
-                            stock.changePercent >= 0
-                              ? 'bullish-text border-[#22c55e]/30 bg-[#22c55e]/10'
-                              : 'bearish-text border-[#ef4444]/30 bg-[#ef4444]/10'
+            <Card className="bg-slate-900 border-slate-700 terminal-card">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className="text-green-400 text-sm font-mono">LIVE WATCHLIST</span>
+                    </div>
+                    <Badge variant="outline" className="border-cyan-500/50 text-cyan-400 bg-cyan-500/10">
+                      Auto-Refresh: 10s
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-slate-400 text-xs font-mono">
+                      {watchlist.length} SYMBOLS • {lastUpdated.toLocaleTimeString()}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Compact Terminal Table */}
+                <div className="terminal-table-container">
+                  <table className="terminal-table">
+                    <thead className="terminal-table-header">
+                      <tr>
+                        <th className="terminal-th text-left pl-6">SYMBOL</th>
+                        <th className="terminal-th text-left">NAME</th>
+                        <th className="terminal-th text-right pr-6">PRICE</th>
+                        <th className="terminal-th text-right">CHANGE</th>
+                        <th className="terminal-th text-right">%CHG</th>
+                        <th className="terminal-th text-right">VOLUME</th>
+                        <th className="terminal-th text-center">ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {watchlist.map((stock, index) => (
+                        <tr
+                          key={stock.symbol}
+                          className={`terminal-tr hover:bg-slate-800/50 ${
+                            index % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/10'
                           }`}
                         >
-                          {stock.changePercent >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
-                          {formatPercentage(stock.changePercent)}
-                        </Badge>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFromWatchlist(stock.symbol);
-                          }}
-                          className="h-8 w-8 p-0 text-muted-foreground hover:bearish-text hover:bg-destructive/10"
-                          title="Remove from watchlist"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Price Display */}
-                      <div className="text-center py-2">
-                        <div className="text-3xl font-bold font-mono text-foreground">
-                          {formatCurrency(stock.price)}
-                        </div>
-                        <div className={`text-sm font-semibold ${
-                          stock.change >= 0 ? 'bullish-text' : 'bearish-text'
-                        }`}>
-                          {stock.change >= 0 ? '+' : ''}{formatCurrency(stock.change)}
-                        </div>
-                      </div>
+                          {/* Symbol */}
+                          <td className="terminal-td pl-6">
+                            <div className="terminal-symbol">{stock.symbol}</div>
+                          </td>
 
-                      {/* Market Metrics Grid */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-muted/30 rounded-lg p-3">
-                          <div className="metric-label">Volume</div>
-                          <div className="metric-value text-sm">{formatVolume(stock.volume)}</div>
-                        </div>
-                        <div className="bg-muted/30 rounded-lg p-3">
-                          <div className="metric-label">P/E Ratio</div>
-                          <div className="metric-value text-sm">{formatNumber(stock.pe, 1)}</div>
-                        </div>
-                        <div className="bg-muted/30 rounded-lg p-3">
-                          <div className="metric-label">Market Cap</div>
-                          <div className="metric-value text-sm truncate">{formatMarketCap(stock.marketCap)}</div>
-                        </div>
-                        <div className="bg-muted/30 rounded-lg p-3">
-                          <div className="metric-label">Sector</div>
-                          <div className="metric-value text-sm">{stock.sector || 'N/A'}</div>
-                        </div>
-                      </div>
+                          {/* Company Name */}
+                          <td className="terminal-td">
+                            <div className="terminal-company truncate max-w-xs" title={stock.name}>
+                              {stock.name}
+                            </div>
+                          </td>
 
-                      {/* Action Buttons */}
-                      <div className="flex justify-center gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStocks(prev =>
-                              prev.includes(stock.symbol)
-                                ? prev.filter(s => s !== stock.symbol)
-                                : [...prev, stock.symbol]
-                            );
-                          }}
-                          className="trading-button-secondary"
-                        >
-                          {selectedStocks.includes(stock.symbol) ? 'Deselect' : 'Compare'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            generateInsight(stock.symbol);
-                          }}
-                          disabled={isGeneratingInsight}
-                          className="trading-button-primary"
-                        >
-                          {isGeneratingInsight ? (
-                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                          ) : (
-                            <Brain className="w-3 h-3 mr-1" />
-                          )}
-                          {isGeneratingInsight ? 'Analyzing...' : 'Analyze'}
-                        </Button>
-                      </div>
+                          {/* Price */}
+                          <td className="terminal-td text-right pr-6">
+                            <div className="terminal-price">{formatCurrency(stock.price)}</div>
+                          </td>
 
-                      {/* View Stock Chart Button */}
-                      <div className="flex justify-center pt-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `/stock/${stock.symbol}#chart`;
-                          }}
-                          className="bg-accent/5 border-accent/20 hover:bg-accent/10 hover:border-accent/30"
-                        >
-                          <LineChartIcon className="w-3 h-3 mr-1" />
-                          View Stock Graph
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                          {/* Change */}
+                          <td className="terminal-td text-right">
+                            <div className={`terminal-change ${
+                              stock.change >= 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              {stock.change >= 0 ? '+' : ''}{formatCurrency(stock.change)}
+                            </div>
+                          </td>
 
-            {watchlist.length === 0 && !loading && (
-              <Card className="bg-card border-border">
-                <CardContent className="text-center py-12">
-                  <BarChart3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-xl mb-2 text-foreground">No Stocks in Watchlist</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    Add stocks to your watchlist using the search bar above to see real-time market data.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                          {/* Change Percent */}
+                          <td className="terminal-td text-right">
+                            <div className={`terminal-change-percent ${
+                              stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400'
+                            } flex items-center justify-end gap-1`}>
+                              {stock.changePercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                              {formatPercentage(stock.changePercent)}
+                            </div>
+                          </td>
 
-            {/* Enhanced Comparison Table - Only show real data */}
-            {selectedStocks.length > 0 && (
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="font-nanum text-foreground">Detailed Metrics Comparison</CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    Side-by-side comparison of {selectedStocks.join(', ')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="data-table-header">
-                        <tr>
-                          <th className="text-left p-4 text-muted-foreground font-semibold">Metric</th>
-                          {watchlist
-                            .filter(stock => selectedStocks.includes(stock.symbol))
-                            .map(stock => (
-                              <th key={stock.symbol} className="text-center p-4 text-foreground font-mono font-bold">
-                                {stock.symbol}
-                              </th>
-                            ))}
+                          {/* Volume */}
+                          <td className="terminal-td text-right">
+                            <div className="terminal-volume text-slate-400">
+                              {formatVolume(stock.volume)}
+                            </div>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="terminal-td text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  generateInsight(stock.symbol);
+                                }}
+                                disabled={isGeneratingInsight}
+                                className="terminal-action-button"
+                              >
+                                {isGeneratingInsight ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Brain className="w-3 h-3" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = `/stock/${stock.symbol}#chart`;
+                                }}
+                                className="terminal-action-button"
+                              >
+                                <LineChartIcon className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeFromWatchlist(stock.symbol)}
+                                className="terminal-action-button text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          { label: 'Price', key: 'price', formatter: formatCurrency },
-                          { label: 'Change %', key: 'changePercent', formatter: formatPercentage },
-                          { label: 'Volume', key: 'volume', formatter: formatVolume },
-                          { label: 'P/E Ratio', key: 'pe', formatter: (v: number | undefined | null) => formatNumber(v, 1) },
-                          { label: 'Market Cap', key: 'marketCap', formatter: formatMarketCap }
-                        ].map((metric, index) => (
-                          <tr key={metric.label} className={`market-data-row ${index % 2 === 0 ? 'bg-muted/20' : ''}`}>
-                            <td className="p-4 font-medium text-foreground">{metric.label}</td>
-                            {watchlist
-                              .filter(stock => selectedStocks.includes(stock.symbol))
-                              .map(stock => (
-                                <td key={`${stock.symbol}-${metric.key}`} className={`p-4 text-center font-mono ${
-                                  metric.key === 'changePercent'
-                                    ? stock.changePercent >= 0 ? 'price-gain' : 'price-loss'
-                                    : 'text-foreground'
-                                }`}>
-                                  {metric.formatter((stock as any)[metric.key])}
-                                </td>
-                              ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            {/* Refresh Controls */}
-            <div className="flex justify-center mt-8">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshAllData}
-                disabled={loading}
-                className="gap-2 border-blue-500/50 hover:bg-blue-500/10 hover:border-blue-500"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh Data
-              </Button>
-            </div>
+                {/* Empty State */}
+                {watchlist.length === 0 && !loading && (
+                  <div className="text-center py-12">
+                    <div className="text-slate-500 mb-4">
+                      <BarChart3 className="w-12 h-12 mx-auto" />
+                    </div>
+                    <h3 className="text-slate-400 mb-2">NO SYMBOLS IN WATCHLIST</h3>
+                    <p className="text-slate-500 text-sm max-w-md mx-auto">
+                      Add stocks using the search bar above to populate your live terminal view
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Enhanced AI Insights Tab - Only basic insights based on real data */}
