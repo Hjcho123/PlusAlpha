@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area,
@@ -17,7 +17,7 @@ import {
   Bar
 } from 'recharts';
 import { TrendingUp, TrendingDown, BarChart3, Activity, Loader2, BarChart as BarChartIcon, LineChart as LineChartIcon } from 'lucide-react';
-import { api } from '../services/api';
+import { api, WebSocketService } from '../services/api';
 
 interface StockChartProps {
   symbol: string;

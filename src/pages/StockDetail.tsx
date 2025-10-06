@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import TradingViewWidget from '@/components/TradingViewWidget';
@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { api } from '@/services/api';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  ArrowLeft, 
+import { api, WebSocketService } from '@/services/api';
+import {
+  TrendingUp,
+  TrendingDown,
+  ArrowLeft,
   Loader2,
   BarChart3,
   Activity,
@@ -42,12 +42,145 @@ const StockDetail: React.FC = () => {
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
+  const [wsInstance, setWsInstance] = useState<WebSocketService | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (symbol) {
       loadStockData(symbol);
     }
   }, [symbol]);
+
+  // Automatic refresh every 10 seconds
+  useEffect(() => {
+    if (stockData && symbol) {
+      // Start automatic refresh
+      refreshIntervalRef.current = setInterval(() => {
+        console.log('[STOCK_DETAIL] Auto-refreshing price data...');
+        refreshStockData(symbol);
+      }, 10000); // 10 seconds
+
+      console.log('[STOCK_DETAIL] Started automatic price refresh every 10 seconds');
+
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+          console.log('[STOCK_DETAIL] Stopped automatic refresh');
+        }
+      };
+    }
+  }, [stockData?.symbol]); // Only restart when stock symbol changes
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    if (stockData && symbol) {
+      console.log('[STOCK_DETAIL] Initializing WebSocket connection for stock:', symbol);
+
+      const ws = new WebSocketService();
+
+      // Connect to WebSocket
+      ws.connect().then(() => {
+        console.log('[STOCK_DETAIL] WebSocket connected for real-time updates');
+
+        // Subscribe to this stock's symbol
+        ws.subscribe([symbol]);
+        console.log('[STOCK_DETAIL] Subscribed to real-time updates for:', symbol);
+
+        // Handle real-time price updates
+        ws.onPriceUpdate((data) => {
+          if (data.symbol.toUpperCase() === symbol.toUpperCase()) {
+            console.log('[STOCK_DETAIL] Received real-time price update:', data);
+
+            const oldPrice = stockData.price;
+            const newPrice = data.price;
+
+            // Trigger flash animation if price changed significantly
+            if (Math.abs(newPrice - oldPrice) >= 0.01) {
+              const direction = newPrice > oldPrice ? 'up' : 'down';
+              setFlashingStocks(prev => ({ ...prev, [symbol]: direction }));
+
+              // Clear the flash after animation completes
+              setTimeout(() => {
+                setFlashingStocks(prev => ({ ...prev, [symbol]: null }));
+              }, 800);
+            }
+
+            // Update the stock data with real-time price
+            setStockData(prev => prev ? {
+              ...prev,
+              price: data.price,
+              change: data.change || 0,
+              changePercent: data.changePercent || 0,
+            } : null);
+          }
+        });
+
+        setWsInstance(ws);
+
+      }).catch(error => {
+        console.error('[STOCK_DETAIL] WebSocket connection failed:', error);
+      });
+
+      // Cleanup WebSocket on unmount
+      return () => {
+        if (ws) {
+          ws.disconnect();
+          console.log('[STOCK_DETAIL] WebSocket disconnected');
+        }
+      };
+    }
+  }, [stockData?.symbol]); // Reconnect when stock symbol changes
+
+  const refreshStockData = async (sym: string) => {
+    console.log(`[STOCK_DETAIL] Refreshing data for ${sym}...`);
+    try {
+      const data = await api.stock.getStockData(sym);
+
+      if (!data || !data.price || data.price <= 0) {
+        console.warn(`[STOCK_DETAIL] Invalid refresh data for ${sym}:`, data);
+        return; // Don't update if invalid data
+      }
+
+      // Use current stock data as baseline for flash comparison
+      const oldPrice = stockData?.price || 0;
+      const newPrice = data.price;
+
+      // Trigger flash animation if price changed significantly
+      if (Math.abs(newPrice - oldPrice) >= 0.01) {
+        const direction = newPrice > oldPrice ? 'up' : 'down';
+        setFlashingStocks(prev => ({ ...prev, [sym]: direction }));
+
+        // Clear the flash after animation completes
+        setTimeout(() => {
+          setFlashingStocks(prev => ({ ...prev, [sym]: null }));
+        }, 800);
+      }
+
+      // Update the stock data with new price info
+      setStockData(prev => prev ? {
+        ...prev,
+        price: data.price,
+        change: data.change !== undefined ? data.change : data.price * (data.changePercent / 100),
+        changePercent: data.changePercent,
+        volume: data.volume || prev.volume,
+        marketCap: data.marketCap || prev.marketCap,
+        // Keep other properties the same unless they changed
+        pe: data.pe ?? prev.pe,
+        eps: data.eps ?? prev.eps,
+        high: data.high ?? prev.high,
+        low: data.low ?? prev.low,
+        open: data.open ?? prev.open,
+        close: data.close ?? prev.close,
+        dividendYield: data.dividendYield ?? prev.dividendYield,
+      } : null);
+
+      console.log(`[STOCK_DETAIL] Successfully refreshed ${sym}: $${newPrice.toFixed(2)}`);
+    } catch (err) {
+      console.warn(`[STOCK_DETAIL] Error refreshing ${sym}:`, err);
+      // Silent failure for auto-refresh - don't disrupt user experience
+    }
+  };
 
   const loadStockData = async (sym: string) => {
     setLoading(true);
@@ -156,10 +289,18 @@ const StockDetail: React.FC = () => {
               <p className="text-xl text-muted-foreground">{stockData.name}</p>
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-foreground mb-2">
+              <div className={`text-4xl font-bold text-foreground mb-2 transition-colors duration-200 ${
+                flashingStocks[stockData.symbol] === 'up' ? 'price-flash-up' :
+                flashingStocks[stockData.symbol] === 'down' ? 'price-flash-down' :
+                'price-flash-no-animation'
+              }`}>
                 {formatCurrency(stockData.price)}
               </div>
-              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+              <Badge variant={stockData.change >= 0 ? 'default' : 'destructive'} className={`text-lg px-4 py-2 transition-all duration-200 ${
+                flashingStocks[stockData.symbol] === 'up' ? 'price-flash-up' :
+                flashingStocks[stockData.symbol] === 'down' ? 'price-flash-down' :
+                'price-flash-no-animation'
+              }`}>
                 {stockData.change >= 0 ? (
                   <TrendingUp className="w-5 h-5 mr-2" />
                 ) : (

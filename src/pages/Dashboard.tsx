@@ -203,6 +203,7 @@ const Dashboard = () => {
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
   const [wsInstance, setWsInstance] = useState<WebSocketService | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
 
   // Load user's watchlist from backend
   useEffect(() => {
@@ -263,6 +264,20 @@ const Dashboard = () => {
 
           setWatchlist(prev => prev.map(stock => {
             if (stock.symbol === data.symbol) {
+              const oldPrice = stock.price;
+              const newPrice = data.price;
+
+              // Trigger flash animation if price changed significantly
+              if (Math.abs(newPrice - oldPrice) >= 0.01) {
+                const direction = newPrice > oldPrice ? 'up' : 'down';
+                setFlashingStocks(prev => ({ ...prev, [stock.symbol]: direction }));
+
+                // Clear the flash after animation completes
+                setTimeout(() => {
+                  setFlashingStocks(prev => ({ ...prev, [stock.symbol]: null }));
+                }, 800);
+              }
+
               return {
                 ...stock,
                 price: data.price,
@@ -572,6 +587,20 @@ const Dashboard = () => {
         return newCounters;
       });
 
+      // Trigger flash animations for price changes
+      validStocks.forEach((newStock, index) => {
+        const oldStock = watchlist[index];
+        if (oldStock && Math.abs(newStock.price - oldStock.price) >= 0.01) {
+          const direction = newStock.price > oldStock.price ? 'up' : 'down';
+          setFlashingStocks(prev => ({ ...prev, [newStock.symbol]: direction }));
+
+          // Clear the flash after animation completes
+          setTimeout(() => {
+            setFlashingStocks(prev => ({ ...prev, [newStock.symbol]: null }));
+          }, 800);
+        }
+      });
+
       // Update watchlist with new data
       setWatchlist(validStocks);
       setLastUpdated(new Date());
@@ -836,11 +865,21 @@ const Dashboard = () => {
                           key={stock.symbol}
                           className={`terminal-tr hover:bg-slate-800/50 ${
                             index % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/10'
+                          } ${
+                            flashingStocks[stock.symbol] === 'up' ? 'price-flash-row-up' :
+                            flashingStocks[stock.symbol] === 'down' ? 'price-flash-row-down' :
+                            ''
                           }`}
                         >
                           {/* Symbol */}
                           <td className="terminal-td pl-6">
-                            <div className="terminal-symbol">{stock.symbol}</div>
+                            <div className={`terminal-symbol ${
+                              flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
+                              flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
+                              'price-flash-no-animation'
+                            }`}>
+                              {stock.symbol}
+                            </div>
                           </td>
 
                           {/* Company Name */}
@@ -852,13 +891,23 @@ const Dashboard = () => {
 
                           {/* Price */}
                           <td className="terminal-td text-right pr-6">
-                            <div className="terminal-price">{formatCurrency(stock.price)}</div>
+                            <div className={`terminal-price ${
+                              flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
+                              flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
+                              'price-flash-no-animation'
+                            }`}>
+                              {formatCurrency(stock.price)}
+                            </div>
                           </td>
 
                           {/* Change */}
                           <td className="terminal-td text-right">
                             <div className={`terminal-change ${
                               stock.change >= 0 ? 'text-green-400' : 'text-red-400'
+                            } ${
+                              flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
+                              flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
+                              'price-flash-no-animation'
                             }`}>
                               {stock.change >= 0 ? '+' : ''}{formatCurrency(stock.change)}
                             </div>
@@ -868,6 +917,10 @@ const Dashboard = () => {
                           <td className="terminal-td text-right">
                             <div className={`terminal-change-percent ${
                               stock.changePercent >= 0 ? 'text-green-400' : 'text-red-400'
+                            } ${
+                              flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
+                              flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
+                              'price-flash-no-animation'
                             } flex items-center justify-end gap-1`}>
                               {stock.changePercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                               {formatPercentage(stock.changePercent)}
