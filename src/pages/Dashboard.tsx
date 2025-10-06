@@ -285,15 +285,15 @@ const Dashboard = () => {
               const newPrice = data.price;
 
               // Trigger flash animation if price changed significantly
-              if (Math.abs(newPrice - oldPrice) >= 0.01) {
-                const direction = newPrice > oldPrice ? 'up' : 'down';
-                setFlashingStocks(prev => ({ ...prev, [stock.symbol]: direction }));
+            if (Math.abs(newPrice - oldPrice) >= 0.01) {
+              const direction = newPrice > oldPrice ? 'down' : 'up'; // INVERTED: green for up, red for down
+              setFlashingStocks(prev => ({ ...prev, [data.symbol]: direction }));
 
-                // Clear the flash after animation completes
-                setTimeout(() => {
-                  setFlashingStocks(prev => ({ ...prev, [stock.symbol]: null }));
-                }, 800);
-              }
+              // Clear the flash after animation completes
+              setTimeout(() => {
+                setFlashingStocks(prev => ({ ...prev, [data.symbol]: null }));
+              }, 800);
+            }
 
               return {
                 ...stock,
@@ -612,7 +612,7 @@ const Dashboard = () => {
       updatedStocks.forEach((newStock, index) => {
         const oldStock = watchlist[index];
         if (oldStock && Math.abs(newStock.price - oldStock.price) >= 0.01) {
-          const direction = newStock.price > oldStock.price ? 'up' : 'down';
+          const direction = newStock.price > oldStock.price ? 'down' : 'up'; // FIXED: green for up, red for down
           setFlashingStocks(prev => ({ ...prev, [newStock.symbol]: direction }));
 
           // Clear the flash after animation completes
