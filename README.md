@@ -2,6 +2,7 @@
 
 # PlusAlpha: An AI-Powered Stock Dashboard
 
+- Link to Website: https://plusalpha-production.up.railway.app
 ## Project info
 This project is built with:
 
@@ -46,7 +47,7 @@ I'm designing it as an alternative to Yahoo Finance
   <img width="731" height="507" alt="image" src="https://github.com/user-attachments/assets/7c81884d-c9de-4d3a-a777-b413a685d5cc" />
 </div>
 
-### Demo of Landing Page Animation
+### Demo of Landing Page Animation (*Early test)
 <div align="center">
   <video src="https://github.com/user-attachments/assets/654804ea-ac27-4041-9c91-5921c81c2bcd" controls width="800">
  
