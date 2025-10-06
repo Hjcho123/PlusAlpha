@@ -205,6 +205,7 @@ const Dashboard = () => {
   const [wsInstance, setWsInstance] = useState<WebSocketService | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [flashingStocks, setFlashingStocks] = useState<{[key: string]: 'up' | 'down' | null}>({});
+  const [watchlistSize, setWatchlistSize] = useState<'compact' | 'normal' | 'spacious'>('normal');
 
   // Load user's watchlist from backend
   useEffect(() => {
@@ -834,6 +835,39 @@ const Dashboard = () => {
                       <div className={`w-2 h-2 rounded-full ${marketStatus === 'open' ? 'bg-green-600' : 'bg-red-600'}`}></div>
                       <span className="text-green-700 dark:text-green-400 text-sm font-mono">LIVE WATCHLIST</span>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-slate-400 mr-1 font-mono">SIZE:</span>
+                      <Button
+                        size="sm"
+                        variant={watchlistSize === 'compact' ? 'default' : 'ghost'}
+                        onClick={() => setWatchlistSize('compact')}
+                        className={`h-6 px-2 text-xs font-mono ${
+                          watchlistSize === 'compact' ? 'bg-blue-600 hover:bg-blue-700' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        COMPACT
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={watchlistSize === 'normal' ? 'default' : 'ghost'}
+                        onClick={() => setWatchlistSize('normal')}
+                        className={`h-6 px-2 text-xs font-mono ${
+                          watchlistSize === 'normal' ? 'bg-blue-600 hover:bg-blue-700' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        NORMAL
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={watchlistSize === 'spacious' ? 'default' : 'ghost'}
+                        onClick={() => setWatchlistSize('spacious')}
+                        className={`h-6 px-2 text-xs font-mono ${
+                          watchlistSize === 'spacious' ? 'bg-blue-600 hover:bg-blue-700' : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        SPACIOUS
+                      </Button>
+                    </div>
                     <Badge variant="outline" className="border-gray-600 dark:border-gray-300 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800">
                       Auto-Refresh: 10s
                     </Badge>
@@ -846,18 +880,18 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {/* Compact Terminal Table */}
+                {/* Watchlist Terminal Table with Size Options */}
                 <div className="terminal-table-container">
-                  <table className="terminal-table">
-                    <thead className="terminal-table-header">
+                  <table className={`terminal-table ${watchlistSize}`}>
+                    <thead className={`terminal-table-header ${watchlistSize}`}>
                       <tr>
-                        <th className="terminal-th text-left pl-6">SYMBOL</th>
-                        <th className="terminal-th text-left">NAME</th>
-                        <th className="terminal-th text-right pr-6">PRICE</th>
-                        <th className="terminal-th text-right">CHANGE</th>
-                        <th className="terminal-th text-right">%CHG</th>
-                        <th className="terminal-th text-right">VOLUME</th>
-                        <th className="terminal-th text-center">ACTIONS</th>
+                        <th className={`terminal-th text-left pl-6 ${watchlistSize}`}>SYMBOL</th>
+                        <th className={`terminal-th text-left ${watchlistSize}`}>NAME</th>
+                        <th className={`terminal-th text-right pr-6 ${watchlistSize}`}>PRICE</th>
+                        <th className={`terminal-th text-right ${watchlistSize}`}>CHANGE</th>
+                        <th className={`terminal-th text-right ${watchlistSize}`}>%CHG</th>
+                        <th className={`terminal-th text-right ${watchlistSize}`}>VOLUME</th>
+                        <th className={`terminal-th text-center ${watchlistSize}`}>ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -870,10 +904,10 @@ const Dashboard = () => {
                             flashingStocks[stock.symbol] === 'up' ? 'price-flash-row-up' :
                             flashingStocks[stock.symbol] === 'down' ? 'price-flash-row-down' :
                             ''
-                          }`}
+                          } ${watchlistSize}`}
                         >
                           {/* Symbol */}
-                          <td className="terminal-td pl-6">
+                          <td className={`terminal-td pl-6 ${watchlistSize}`}>
                             <div className={`terminal-symbol ${
                               flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
                               flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
@@ -884,14 +918,14 @@ const Dashboard = () => {
                           </td>
 
                           {/* Company Name */}
-                          <td className="terminal-td">
-                            <div className="terminal-company truncate max-w-xs" title={stock.name}>
+                          <td className={`terminal-td ${watchlistSize}`}>
+                            <div className={`terminal-company truncate max-w-xs ${watchlistSize}`} title={stock.name}>
                               {stock.name}
                             </div>
                           </td>
 
                           {/* Price */}
-                          <td className="terminal-td text-right pr-6">
+                          <td className={`terminal-td text-right pr-6 ${watchlistSize}`}>
                             <div className={`terminal-price ${
                               flashingStocks[stock.symbol] === 'up' ? 'price-flash-up' :
                               flashingStocks[stock.symbol] === 'down' ? 'price-flash-down' :
@@ -902,7 +936,7 @@ const Dashboard = () => {
                           </td>
 
                           {/* Change */}
-                          <td className="terminal-td text-right">
+                          <td className={`terminal-td text-right ${watchlistSize}`}>
                             <div className={`terminal-change ${
                               stock.change >= 0 ? 'text-[hsl(var(--bullish))]' : 'text-red-600'
                             } ${
@@ -915,7 +949,7 @@ const Dashboard = () => {
                           </td>
 
                           {/* Change Percent */}
-                          <td className="terminal-td text-right">
+                          <td className={`terminal-td text-right ${watchlistSize}`}>
                             <div className={`terminal-change-percent ${
                               stock.changePercent >= 0 ? 'text-[hsl(var(--bullish))]' : 'text-red-600'
                             } ${
@@ -929,14 +963,14 @@ const Dashboard = () => {
                           </td>
 
                           {/* Volume */}
-                          <td className="terminal-td text-right">
-                            <div className="terminal-volume text-slate-400">
+                          <td className={`terminal-td text-right ${watchlistSize}`}>
+                            <div className={`terminal-volume text-slate-400 ${watchlistSize}`}>
                               {formatVolume(stock.volume)}
                             </div>
                           </td>
 
                           {/* Actions */}
-                          <td className="terminal-td text-center">
+                          <td className={`terminal-td text-center ${watchlistSize}`}>
                             <div className="flex items-center justify-center gap-2">
                               <Button
                                 size="sm"
@@ -946,7 +980,7 @@ const Dashboard = () => {
                                   generateInsight(stock.symbol);
                                 }}
                                 disabled={isGeneratingInsight}
-                                className="terminal-action-button"
+                                className={`terminal-action-button ${watchlistSize}`}
                               >
                                 {isGeneratingInsight ? (
                                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -961,7 +995,7 @@ const Dashboard = () => {
                                   e.stopPropagation();
                                   window.location.href = `/stock/${stock.symbol}#chart`;
                                 }}
-                                className="terminal-action-button"
+                                className={`terminal-action-button ${watchlistSize}`}
                               >
                                 <LineChartIcon className="w-3 h-3" />
                               </Button>
@@ -969,7 +1003,7 @@ const Dashboard = () => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => removeFromWatchlist(stock.symbol)}
-                                className="terminal-action-button text-red-400 hover:text-red-300"
+                                className={`terminal-action-button text-red-400 hover:text-red-300 ${watchlistSize}`}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
