@@ -20,6 +20,7 @@ router.get('/most-active', stockController.getMostActive);
 
 // Individual stock routes
 router.get('/:symbol', stockController.getStockData);
+router.get('/:symbol/fundamentals', stockController.getFundamentals);
 router.get('/:symbol/enhanced', stockController.getEnhancedStockData);
 router.get('/:symbol/market-data', stockController.getMarketData);
 router.get('/:symbol/news', stockController.getStockNews);

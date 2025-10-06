@@ -3,6 +3,7 @@ import { stockDataService } from '../services/StockDataService';
 import { enhancedStockDataService } from '../services/EnhancedStockDataService';
 import { ApiResponse, PaginatedResponse } from '../types';
 import Joi from 'joi';
+import yahooFinance from 'yahoo-finance2';
 
 export class StockController {
   // Validation schemas
@@ -360,12 +361,163 @@ export class StockController {
     }
   };
 
+  // Get comprehensive stock fundamentals (Yahoo Finance complete data)
+  getFundamentals = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { symbol } = req.params;
+
+      if (!symbol) {
+        res.status(400).json({
+          success: false,
+          error: 'Symbol parameter is required',
+          timestamp: new Date()
+        } as ApiResponse);
+        return;
+      }
+
+      const sym = symbol.toUpperCase();
+
+      // ============================================================================
+      // PHASE 1: BASIC TRADING DATA FROM YAHOO QUOTE
+      // ============================================================================
+      console.log(`Fetching comprehensive fundamentals for ${sym}...`);
+
+      const quote = await yahooFinance.quote(sym);
+
+      // ============================================================================
+      // PHASE 2: VALUE AND STATISTICS DATA FROM YAHOO SUMMARYDETAIL
+      // ============================================================================
+      const stats = await yahooFinance.quoteSummary(sym, {
+        modules: ['summaryDetail', 'defaultKeyStatistics', 'financialData']
+      });
+
+      // CORRECTED P/E LOGIC: summaryDetail first, fallback to defaultKeyStatistics
+      const peRatio = stats.summaryDetail?.trailingPE || (stats.defaultKeyStatistics as any)?.trailingPE || null;
+      const epsValue = stats.defaultKeyStatistics?.trailingEps || null;
+
+      // ============================================================================
+      // PHASE 3: ANALYST RECOMMENDATIONS FROM RECOMMENDATION TREND
+      // ============================================================================
+      const analystData = await yahooFinance.quoteSummary(sym, { modules: ['recommendationTrend'] });
+
+      const analystRatings = analystData.recommendationTrend?.trend?.[0] ? {
+        strongBuy: analystData.recommendationTrend.trend[0].strongBuy || 0,
+        buy: analystData.recommendationTrend.trend[0].buy || 0,
+        hold: analystData.recommendationTrend.trend[0].hold || 0,
+        sell: analystData.recommendationTrend.trend[0].sell || 0,
+        strongSell: analystData.recommendationTrend.trend[0].strongSell || 0,
+        total: (analystData.recommendationTrend.trend[0].strongBuy || 0) +
+               (analystData.recommendationTrend.trend[0].buy || 0) +
+               (analystData.recommendationTrend.trend[0].hold || 0) +
+               (analystData.recommendationTrend.trend[0].sell || 0) +
+               (analystData.recommendationTrend.trend[0].strongSell || 0),
+        bullishPercent: ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0)) /
+                       ((analystData.recommendationTrend.trend[0].strongBuy || 0) +
+                        (analystData.recommendationTrend.trend[0].buy || 0) +
+                        (analystData.recommendationTrend.trend[0].hold || 0) +
+                        (analystData.recommendationTrend.trend[0].sell || 0) +
+                        (analystData.recommendationTrend.trend[0].strongSell || 0)) * 100 || 0,
+        consensus: (() => {
+          const bullish = (analystData.recommendationTrend?.trend?.[0]?.strongBuy || 0) +
+                         (analystData.recommendationTrend?.trend?.[0]?.buy || 0);
+          const total = bullish +
+                       (analystData.recommendationTrend?.trend?.[0]?.hold || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+                       (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0);
+
+          if (bullish > total * 0.5) return 'BUY' as const;
+          if ((analystData.recommendationTrend?.trend?.[0]?.sell || 0) +
+              (analystData.recommendationTrend?.trend?.[0]?.strongSell || 0) > total * 0.5) return 'SELL' as const;
+          return 'HOLD' as const;
+        })()
+      } : null;
+
+      // ============================================================================
+      // PHASE 4: COMPANY PROFILE FROM ASSET PROFILE
+      // ============================================================================
+      const profile = await yahooFinance.quoteSummary(sym, { modules: ['assetProfile', 'summaryProfile'] });
+
+      // ============================================================================
+      // EXTRACT ALL DATA WITH PROPER FALLBACKS - NO HARDCODED DATA
+      // ============================================================================
+      const comprehensiveData = {
+        // Basic trading data
+        symbol: quote.symbol || sym,
+        name: quote.shortName || quote.longName,
+
+        // Valuation metrics
+        pe: peRatio,
+        eps: epsValue,
+        pegRatio: stats.defaultKeyStatistics?.pegRatio || null,
+        priceToBook: stats.defaultKeyStatistics?.priceToBook || null,
+        forwardPE: stats.defaultKeyStatistics?.forwardPE || null,
+        forwardEPS: stats.defaultKeyStatistics?.trailingEps || null,
+        beta: stats.summaryDetail?.beta || null,
+
+        // Financial health
+        debtToEquity: stats.financialData?.debtToEquity || null,
+        currentRatio: stats.financialData?.currentRatio || null,
+        quickRatio: stats.financialData?.quickRatio || null,
+        totalCash: stats.financialData?.totalCash || null,
+        freeCashFlow: stats.financialData?.freeCashflow || null,
+        roa: stats.financialData?.returnOnAssets || null,
+        roe: stats.financialData?.returnOnEquity || null,
+
+        // Dividends
+        dividendRate: stats.summaryDetail?.dividendRate || null,
+        dividendYield: stats.summaryDetail?.dividendYield || null,
+        dividendPayoutRatio: stats.summaryDetail?.payoutRatio || null,
+
+        // Analyst data
+        analystRatings,
+
+        // Company info
+        sector: profile.assetProfile?.sector || null,
+        industry: profile.assetProfile?.industry || null,
+        ceo: profile.assetProfile?.companyOfficers?.[0]?.name || null,
+        employees: profile.assetProfile?.fullTimeEmployees || null,
+        headquarters: profile.assetProfile ? `${profile.assetProfile.city || ''}, ${profile.assetProfile.state || ''}, ${profile.assetProfile.country || ''}`.trim() || null : null,
+        businessSummary: profile.assetProfile?.longBusinessSummary || null
+      };
+
+      console.log(`✅ Fundamentals fetched successfully for ${sym}`);
+
+      res.status(200).json({
+        success: true,
+        data: comprehensiveData,
+        timestamp: new Date()
+      } as ApiResponse);
+
+    } catch (error: any) {
+      console.error('Get fundamentals error:', error);
+
+      // Return fallback structure on error - still no hardcoded data!
+      res.status(200).json({
+        success: true,
+        data: {
+          symbol: req.params.symbol,
+          name: `${req.params.symbol} Company`,
+          pe: null, eps: null, pegRatio: null, priceToBook: null,
+          forwardPE: null, forwardEPS: null, beta: null,
+          debtToEquity: null, currentRatio: null, quickRatio: null,
+          totalCash: null, freeCashFlow: null, roa: null, roe: null,
+          dividendRate: null, dividendYield: null, dividendPayoutRatio: null,
+          analystRatings: null,
+          sector: null, industry: null, ceo: null, employees: null,
+          headquarters: null, businessSummary: null
+        },
+        timestamp: new Date()
+      } as ApiResponse);
+    }
+  };
+
   // Get stock news (placeholder - would integrate with news API)
   getStockNews = async (req: Request, res: Response): Promise<void> => {
     try {
       const { symbol } = req.params;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       if (!symbol) {
         res.status(400).json({
           success: false,

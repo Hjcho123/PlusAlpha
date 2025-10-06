@@ -106,21 +106,13 @@ const StockDetail: React.FC = () => {
     try {
       console.log(`Loading comprehensive data for ${sym}...`);
 
-      // For now, just set the data structure with -- values
-      // Backend endpoint needs to be added to fetch Yahoo Finance data server-side
-      setFinancialData({
-        pe: null, eps: null, pegRatio: null, priceToBook: null,
-        forwardPE: null, forwardEPS: null, beta: null,
-        debtToEquity: null, currentRatio: null, quickRatio: null,
-        totalCash: null, freeCashFlow: null, roa: null, roe: null,
-        dividendRate: null, dividendYield: null, dividendPayoutRatio: null,
-        analystRatings: null,
-        sector: null, industry: null, ceo: null, employees: null,
-        headquarters: null, businessSummary: null
-      });
+      // Get comprehensive financial data from backend Yahoo Finance endpoint
+      const data = await api.stock.getFundamentals(sym);
+      setFinancialData(data as ComprehensiveFinancialData);
+
     } catch (err) {
       console.error(`Error loading comprehensive data for ${sym}:`, err);
-      // Set default -- values
+      // Set default -- values on error
       setFinancialData({
         pe: null, eps: null, pegRatio: null, priceToBook: null,
         forwardPE: null, forwardEPS: null, beta: null,

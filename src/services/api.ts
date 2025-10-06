@@ -154,6 +154,13 @@ export const stockAPI = {
     return result.data;
   },
 
+  // Get comprehensive fundamentals data
+  getFundamentals: async (symbol: string) => {
+    const response = await fetch(`${API_BASE_URL}/stocks/${symbol}/fundamentals`);
+    const result = await handleResponse<{[key: string]: any}>(response);
+    return result.data;
+  },
+
   // Get multiple stocks data
   getMultipleStocksData: async (symbols: string[]): Promise<StockData[]> => {
     const response = await fetch(`${API_BASE_URL}/stocks/batch`, {
