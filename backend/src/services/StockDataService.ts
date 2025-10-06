@@ -310,14 +310,24 @@ export class StockDataService {
   private async fetchFromYahooFinance(symbol: string): Promise<StockDataDocument | null> {
     try {
       console.log(`Fetching real-time data for ${symbol} from Yahoo Finance`);
-      
+
       const quote = await yahooFinance.quote(symbol);
-      const stats = await yahooFinance.quoteSummary(symbol, { modules: ['price', 'summaryDetail'] });
+      const stats = await yahooFinance.quoteSummary(symbol, {
+        modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
+      });
 
       // Handle missing data scenarios
       if (!quote?.regularMarketPrice || !stats?.summaryDetail) {
         console.error(`Incomplete data from Yahoo Finance for ${symbol}`);
         return null;
+      }
+
+      // Try to get PE ratio from multiple sources - SUMMARYDETAIL HAS APPLE'S P/E!
+      let peRatio: number | null = null;
+      if (stats.summaryDetail.trailingPE) {
+        peRatio = stats.summaryDetail.trailingPE;  // Apple P/E is here: 39.21!
+      } else if ((stats.defaultKeyStatistics as any)?.trailingPE) {
+        peRatio = (stats.defaultKeyStatistics as any).trailingPE;  // Fallback with type assertion
       }
 
       const stockData = {
@@ -328,8 +338,8 @@ export class StockDataService {
         changePercent: quote.regularMarketChangePercent,
         volume: quote.regularMarketVolume,
         marketCap: stats.summaryDetail.marketCap,
-        pe: stats.summaryDetail.trailingPE,
-        eps: (stats.summaryDetail as any).epsTrailingTwelveMonths,
+        pe: peRatio,
+        eps: stats.defaultKeyStatistics?.trailingEps || (stats.summaryDetail as any).epsTrailingTwelveMonths,
         dividend: stats.summaryDetail.dividendRate,
         high52Week: stats.summaryDetail.fiftyTwoWeekHigh,
         low52Week: stats.summaryDetail.fiftyTwoWeekLow,
