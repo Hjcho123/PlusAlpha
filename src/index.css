@@ -843,6 +843,49 @@ textarea:focus {
     }
   }
 
+  /* Ensure consistent padding across sizes and themes */
+  .terminal-td.compact {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .terminal-td.normal {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  .terminal-td.spacious {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .dark .terminal-td.compact {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .dark .terminal-td.normal {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  .dark .terminal-td.spacious {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
   .terminal-symbol {
     @apply font-mono font-bold text-lg whitespace-nowrap;
 
@@ -874,10 +917,10 @@ textarea:focus {
     @apply text-black font-bold;
     text-shadow: none;
 
-    /* Dark theme price override */
+    /* Dark theme price override - WHITE TEXT, no cyan */
     .dark & {
-      @apply text-cyan-400 font-bold;
-      text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+      @apply text-white font-bold;
+      text-shadow: none;
     }
   }
 
